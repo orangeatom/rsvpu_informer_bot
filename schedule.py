@@ -2,13 +2,18 @@
 
 import pymssql
 from config import ScheduleDatabase
-from sql import *
+import sql
+import datetime
 
 connect = pymssql.connect(server='127.0.0.1',
                           password=ScheduleDatabase.pwd,
                           database=ScheduleDatabase.dbname,
                           user=ScheduleDatabase.user,
                           )
+
+
+def _get_schedule_group(date):
+    return sql.group.format()
 
 
 class DatabaseError(Exception):
@@ -40,7 +45,7 @@ def get_schedule_today():
 
 
 def get_schedule_tomorrow():
-    get_schedule_group()
+    _get_schedule_group()
 
 
 def get_schedule_week():
