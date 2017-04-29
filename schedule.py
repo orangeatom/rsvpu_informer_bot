@@ -21,7 +21,22 @@ class DatabaseError(Exception):
 
 
 def schedule_group_query():
-    query = ""
+    cursor = connect.cursor()
+    try:
+        strr = (sql.query_group.format(date=datetime.date(2017,4, 24), id ='1510'))
+        cursor.execute(strr)
+        print(2)
+        row = cursor.fetchone()
+        print(3)
+        while row:
+            print(4)
+            print(row)
+            row = cursor.fetchone()
+
+
+    except:
+        print('ahahahah')
+    connect.close()
 
 
 def schedule_teacher_query():
@@ -60,3 +75,5 @@ def get_teachers_of_subjects():
     pass
 
 
+
+schedule_group_query()

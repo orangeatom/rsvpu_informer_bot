@@ -29,7 +29,7 @@ DECLARE @group int = {id}
                 LEFT OUTER JOIN
                     [ContentOfSchedule] Rasp 
                     ON Periods.sd = Rasp.StartOn
-                    AND Rasp.Schedule IN (SELECT OID FROM Schedule WHERE Status = '0')
+                    AND Rasp.Schedule IN (SELECT OID FROM Schedule WHERE Status = 0)
                     AND ((Rasp.[Group]=@group)
                 OR (Rasp.[SubGroup]in
                 (SELECT SGr.OID FROM [SubGroup] SGr WHERE SGr.[Group]=@group))
@@ -65,7 +65,6 @@ DECLARE @group int = {id}
                 WHERE StartOn IS NOT NULL
 
                 ORDER BY Periods.sd'''
-
 
 query_teacher = '''
 DECLARE @periodStart datetime = '{date} 00:00:00'
