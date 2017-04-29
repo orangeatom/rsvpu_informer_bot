@@ -4,3 +4,4 @@ from peewee import *
 class User(Model):
     pass
 
+

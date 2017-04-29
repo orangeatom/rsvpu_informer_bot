@@ -13,11 +13,14 @@ connect = pymssql.connect(server='127.0.0.1',
 class DatabaseError(Exception):
     pass
 
+
 def schedule_group_query():
     query = ""
 
+
 def schedule_teacher_query():
     pass
+
 
 def schedule_auditorium_query():
     pass
