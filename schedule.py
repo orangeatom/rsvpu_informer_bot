@@ -2,6 +2,7 @@
 
 import pymssql
 from config import ScheduleDatabase
+from sql import *
 
 connect = pymssql.connect(server='127.0.0.1',
                           password=ScheduleDatabase.pwd,
@@ -39,7 +40,7 @@ def get_schedule_today():
 
 
 def get_schedule_tomorrow():
-    pass
+    get_schedule_group()
 
 
 def get_schedule_week():
