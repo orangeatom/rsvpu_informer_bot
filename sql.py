@@ -1,4 +1,4 @@
-query_group = '''
+schedule_group = '''
 DECLARE @periodStart datetime = '{date} 00:00:00'
 DECLARE @periodEnd datetime = '{date} 23:59:59'
 DECLARE @group int = {id}
@@ -63,12 +63,13 @@ DECLARE @group int = {id}
 
                 Left JOIN [Post] P
                 ON Prep.[Post]=P.[OID] 
+                
+                
 
                 WHERE StartOn IS NOT NULL
+'''
 
-                ORDER BY Periods.sd'''
-
-query_teacher = '''
+schedule_teacher = '''
 DECLARE @periodStart datetime = '{date} 00:00:00'
 DECLARE @periodEnd datetime = '{date} 23:59:59'
 DECLARE @prep int = {id}
@@ -111,11 +112,9 @@ DECLARE @prep int = {id}
             ON Rasp.[Schedule]=S.[OID]
 
             WHERE StartOn IS NOT NULL
-
-            ORDER BY Periods.sd
 '''
 
-query_auditorium = '''
+schedule_auditorium = '''
 DECLARE @periodStart datetime = '{date} 00:00:00'
 DECLARE @periodEnd datetime = '{date} 23:59:59'
 DECLARE @aud int = {id}
@@ -157,7 +156,4 @@ DECLARE @aud int = {id}
             ON Rasp.[Schedule]=S.[OID]
 
             WHERE StartOn IS NOT NULL
-
-            ORDER BY Periods.sd
-
 '''

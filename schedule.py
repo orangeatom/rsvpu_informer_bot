@@ -4,6 +4,7 @@ import pymssql
 from config import ScheduleDatabase
 import sql
 import datetime
+import time
 
 connect = pymssql.connect(server='127.0.0.1',
                           password=ScheduleDatabase.pwd,
@@ -23,13 +24,10 @@ class DatabaseError(Exception):
 def schedule_group_query():
     cursor = connect.cursor()
     try:
-        strr = (sql.query_group.format(date=datetime.date(2017,4, 24), id ='1510'))
-        cursor.execute(strr)
-        print(2)
+        cursor.execute(sql.schedule_group.format(date=datetime.date(2017,4, 24), id ='1479'))
         row = cursor.fetchone()
-        print(3)
         while row:
-            print(4)
+
             print(row)
             row = cursor.fetchone()
 
@@ -75,5 +73,8 @@ def get_teachers_of_subjects():
     pass
 
 
-
+tt = time.time()
+print(tt)
 schedule_group_query()
+tt2 = time.time()
+print(tt2-tt)
