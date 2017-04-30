@@ -15,10 +15,7 @@ DECLARE @group int = {id}
                     Para.[Number] as 'Para', 
                     rasp.[stream] as Stream, 
                     rasp.[subgroup] as Subgroup, 
-                    SGr.[Name] as SubGroupName, 
-                    P.[Abbr]
-                    
-                    
+                    SGr.[Name] as SubGroupName
 
             FROM 
                 (SELECT [ContentOfSchedule].[StartOn] AS sd
@@ -51,7 +48,6 @@ DECLARE @group int = {id}
                 Left JOIN [ContentTableOfLesson] Para
                 ON Rasp.[ContentTableOfLesson]=Para.[OID]
 
-
                 Left JOIN [KindOfWork] Vid
                 ON Rasp.[KindOfWork]=Vid.[OID]
 
@@ -60,11 +56,6 @@ DECLARE @group int = {id}
 
                 Left JOIN [Schedule] S
                 ON Rasp.[Schedule]=S.[OID]
-
-                Left JOIN [Post] P
-                ON Prep.[Post]=P.[OID] 
-                
-                
 
                 WHERE StartOn IS NOT NULL
 '''
