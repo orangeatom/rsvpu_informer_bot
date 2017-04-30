@@ -17,6 +17,8 @@ DECLARE @group int = {id}
                     rasp.[subgroup] as Subgroup, 
                     SGr.[Name] as SubGroupName, 
                     P.[Abbr]
+                    
+                    
 
             FROM 
                 (SELECT [ContentOfSchedule].[StartOn] AS sd
