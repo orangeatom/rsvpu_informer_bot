@@ -4,7 +4,7 @@ DECLARE @periodEnd datetime = '{date} 23:59:59'
 DECLARE @group int = {id}
         SELECT 
             CONVERT(nvarchar(50), Rasp.[StartOn], 108) as StartOn,
-                    Rasp.[EndOn], Rasp.[StartTime], 
+                     Rasp.[StartTime], 
                     rasp.[group] as GroupName, 
                     Prep.[FIO] as 'Prepod', 
                     Prep.[Person] as 'Prepod_id',
@@ -15,9 +15,12 @@ DECLARE @group int = {id}
                     Para.[Number] as 'Para', 
                     rasp.[stream] as Stream, 
                     rasp.[subgroup] as Subgroup, 
-                    SGr.[Name] as SubGroupName
+                    SGr.[Name] as SubGroupName,
+                    [Group].[Course],
+                    [Group].[FormOfEducation]
 
             FROM 
+            
                 (SELECT [ContentOfSchedule].[StartOn] AS sd
                 FROM [ContentOfSchedule] 
 
@@ -56,6 +59,8 @@ DECLARE @group int = {id}
 
                 Left JOIN [Schedule] S
                 ON Rasp.[Schedule]=S.[OID]
+                
+                left join [Group] on SGr.[Group]=[Group].[OID]
 
                 WHERE StartOn IS NOT NULL
 '''

@@ -30,7 +30,8 @@ senior_schedule_time = ('1. 08:00',
                         '6. 17:15',
                         '7. 19:00')
 
-
+def tomorrow():
+    return datetime.timedelta(days=1)+datetime.date.today()
 
 def _format_query_schedule_group(date):
     return sql.group.format()
@@ -42,10 +43,9 @@ class DatabaseError(Exception):
 
 def schedule_group_query():
 
-
     cursor = connect.cursor()
     try:
-        cursor.execute(sql.schedule_group.format(date=datetime.date(2017,4, 24), id ='1479'))
+        cursor.execute(sql.schedule_group.format(date=datetime.date.today(), id ='1479'))
         row = cursor.fetchone()
         while row:
             # get data from row
@@ -55,7 +55,7 @@ def schedule_group_query():
 
     except:
         print('ahahahah')
-    connect.close()
+
 
 
 def schedule_teacher_query():
@@ -95,6 +95,7 @@ def get_teachers_of_subjects():
 
 
 
+
 total = 0
 count = 1
 for timer in range(count):
@@ -106,3 +107,5 @@ for timer in range(count):
 
 total=total/count
 print(total)
+print(tomorrow())
+connect.close()
