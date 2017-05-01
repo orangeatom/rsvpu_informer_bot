@@ -45,6 +45,9 @@ def schedule_group_query():
 
     cursor = connect.cursor()
     try:
+        cursor.execute('select Course from [Group] Where [Group].OID = {id}'.format(id=10))
+        course = cursor.fetchone()
+        print(course)
         cursor.execute(sql.schedule_group.format(date=datetime.date.today(), id ='1479'))
         row = cursor.fetchone()
         while row:
@@ -107,5 +110,4 @@ for timer in range(count):
 
 total=total/count
 print(total)
-print(tomorrow())
 connect.close()

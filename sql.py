@@ -4,7 +4,7 @@ DECLARE @periodEnd datetime = '{date} 23:59:59'
 DECLARE @group int = {id}
         SELECT 
             CONVERT(nvarchar(50), Rasp.[StartOn], 108) as StartOn,
-                     Rasp.[StartTime], 
+                    Rasp.[StartTime], 
                     rasp.[group] as GroupName, 
                     Prep.[FIO] as 'Prepod', 
                     Prep.[Person] as 'Prepod_id',
