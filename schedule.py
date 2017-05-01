@@ -5,6 +5,7 @@ from config import ScheduleDatabase
 import sql
 import datetime
 import time
+import re
 
 connect = pymssql.connect(server='127.0.0.1',
                           password=ScheduleDatabase.pwd,
@@ -12,26 +13,32 @@ connect = pymssql.connect(server='127.0.0.1',
                           user=ScheduleDatabase.user,
                           )
 
+FormOfEducation = {4 : 'bachelor_full_day',
+                   5: 'half_day',
+                   6: 'master'}
 
-primary_schedule_time = ('1. 08:00',
-                         '2. 09:45',
-                         '3. 12:00',
-                         '4. 13:45',
-                         '5. 15:30',
-                         '6. 17:15',
-                         '7. 19:00')
+primary_schedule_time = ('1️⃣ 08:00',
+                         '2️⃣ 09:45',
+                         '3️⃣ 12:00',
+                         '4️⃣ 13:45',
+                         '5️⃣ 15:30',
+                         '6️⃣ 17:15',
+                         '7️⃣ 19:00')
 
 
-senior_schedule_time = ('1. 08:00',
-                        '2. 09:45',
-                        '3. 11:30',
-                        '4. 13:45',
-                        '5. 15:30',
-                        '6. 17:15',
-                        '7. 19:00')
+senior_schedule_time = ('1️⃣ 08:00',
+                        '2️⃣ 09:45',
+                        '3️⃣ 11:30',
+                        '4️⃣ 13:45',
+                        '5️⃣ 15:30',
+                        '6️⃣ 17:15',
+                        '7️⃣ 19:00')
 
 def tomorrow():
     return datetime.timedelta(days=1)+datetime.date.today()
+
+def today():
+    return datetime.date.today()
 
 def _format_query_schedule_group(date):
     return sql.group.format()
@@ -45,19 +52,20 @@ def schedule_group_query():
 
     cursor = connect.cursor()
     try:
-        cursor.execute('select Course from [Group] Where [Group].OID = {id}'.format(id=10))
+        cursor.execute('select Course,FormOfEducation from [Group] Where [Group].OID = {id}'.format(id=1479))
         course = cursor.fetchone()
         print(course)
-        cursor.execute(sql.schedule_group.format(date=datetime.date.today(), id ='1479'))
+        cursor.execute(sql.schedule_group.format(date=tomorrow(), id ='1479'))
         row = cursor.fetchone()
         while row:
             # get data from row
-            print(row)
+            if(row[0]):
+                print(row)
+
             row = cursor.fetchone()
 
-
     except:
-        print('ahahahah')
+        print('error')
 
 
 
@@ -100,7 +108,7 @@ def get_teachers_of_subjects():
 
 
 total = 0
-count = 1
+count = 100
 for timer in range(count):
         tt = time.time()
         schedule_group_query()

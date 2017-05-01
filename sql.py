@@ -6,18 +6,15 @@ DECLARE @group int = {id}
             CONVERT(nvarchar(50), Rasp.[StartOn], 108) as StartOn,
                     Rasp.[StartTime], 
                     rasp.[group] as GroupName, 
+                    rasp.[stream] as Stream, 
+                    rasp.[subgroup] as Subgroup, 
                     Prep.[FIO] as 'Prepod', 
-                    Prep.[Person] as 'Prepod_id',
                     Disp.[Name] as 'Disciplina',
                     Vid.[Abbr] as 'Vid', 
                     Rasp.[Note], Aud.[Name] as 'Aud', 
                     Aud.[OID] as 'Aud_id', 
                     Para.[Number] as 'Para', 
-                    rasp.[stream] as Stream, 
-                    rasp.[subgroup] as Subgroup, 
-                    SGr.[Name] as SubGroupName,
-                    [Group].[Course],
-                    [Group].[FormOfEducation]
+                    SGr.[Name] as SubGroupName
 
             FROM 
             
@@ -60,7 +57,7 @@ DECLARE @group int = {id}
                 Left JOIN [Schedule] S
                 ON Rasp.[Schedule]=S.[OID]
                 
-                left join [Group] on SGr.[Group]=[Group].[OID]
+           
 
                 WHERE StartOn IS NOT NULL
 '''
