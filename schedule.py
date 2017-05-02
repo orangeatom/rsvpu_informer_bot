@@ -13,7 +13,7 @@ connect = pymssql.connect(server='127.0.0.1',
                           user=ScheduleDatabase.user,
                           )
 
-FormOfEducation = {4 : 'bachelor_full_day',
+FormOfEducation = {4: 'bachelor_full_day',
                    5: 'half_day',
                    6: 'master'}
 
@@ -34,35 +34,37 @@ senior_schedule_time = ('1️⃣ 08:00',
                         '6️⃣ 17:15',
                         '7️⃣ 19:00')
 
-def tomorrow():
-    return datetime.timedelta(days=1)+datetime.date.today()
-
-def today():
-    return datetime.date.today()
-
-def _format_query_schedule_group(date):
-    return sql.group.format()
-
-
 class DatabaseError(Exception):
     pass
 
 
-def schedule_group_query():
 
+def tomorrow():
+    """return datetime object with tomorrow """
+    return datetime.timedelta(days=1) + datetime.date.today()
+
+
+def today():
+    """return datetime object with today"""
+    return datetime.date.today()
+
+
+def schedule_group_query(group_id,date):
+    """return schedule for entered group and selected date"""
     cursor = connect.cursor()
     try:
-        cursor.execute('select Course,FormOfEducation from [Group] Where [Group].OID = {id}'.format(id=1479))
+        cursor.execute('select Course,FormOfEducation, Name from [Group] Where [Group].OID = {id}'.format(id=1479))
         course = cursor.fetchone()
         print(course)
-        cursor.execute(sql.schedule_group.format(date=tomorrow(), id ='1479'))
-        row = cursor.fetchone()
-        while row:
-            # get data from row
-            if(row[0]):
-                print(row)
+        if course is not None:
 
+            cursor.execute(sql.schedule_group.format(date=tomorrow(), id ='1479'))
             row = cursor.fetchone()
+            while row:
+                # get data from row
+                print(row)
+                print(row[0])
+                row = cursor.fetchone()
 
     except:
         print('error')
@@ -90,8 +92,7 @@ def get_schedule_today():
 
 
 def get_schedule_tomorrow():
-    _format_query_schedule_group()
-
+    pass
 
 def get_schedule_week():
     pass
@@ -111,7 +112,7 @@ total = 0
 count = 100
 for timer in range(count):
         tt = time.time()
-        schedule_group_query()
+        schedule_group_query(174)
         tt2 = time.time()
         total = total+(tt2-tt)
 
