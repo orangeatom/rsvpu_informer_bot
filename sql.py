@@ -68,20 +68,33 @@ DECLARE @periodEnd datetime = '{date} 23:59:59'
 DECLARE @prep int = {id}
 
         SELECT 
-            CONVERT(nvarchar(50), Rasp.[StartOn], 108) as StartOn, Rasp.[EndOn], Rasp.[StartTime], rasp.[group] as GroupName, Prep.[FIO] as 'Prepod', Prep.[Person] as 'Prepod_id',
-            Disp.[Name] as 'Disciplina', Vid.[Abbr] as 'Vid', Rasp.[Note], Aud.[Name] as 'Aud', Aud.[OID] as 'Aud_id', Para.[Number] as 'Para', rasp.[stream] as Stream, rasp.[subgroup] as Subgroup, SGr.[Name] as SubGroupName
+            CONVERT(nvarchar(50), Rasp.[StartOn], 108) as StartOn, 
+            Rasp.[EndOn], 
+            Rasp.[StartTime], 
+            rasp.[group] as GroupName, 
+            Prep.[FIO] as 'Prepod', 
+            Prep.[Person] as 'Prepod_id',
+            Disp.[Name] as 'Disciplina', 
+            Vid.[Abbr] as 'Vid', 
+            Rasp.[Note], 
+            Aud.[Name] as 'Aud', 
+            Aud.[OID] as 'Aud_id', 
+            Para.[Number] as 'Para', 
+            rasp.[stream] as Stream, 
+            rasp.[subgroup] as Subgroup, 
+            SGr.[Name] as SubGroupName
+            
             FROM 
-            (SELECT [ContentOfSchedule].[StartOn] AS sd
-            FROM [ContentOfSchedule] 
-            WHERE [ContentOfSchedule].[StartOn] BETWEEN @periodStart AND @periodEnd
-            GROUP BY [ContentOfSchedule].[StartOn]) Periods
+                (SELECT [ContentOfSchedule].[StartOn] AS sd
+                FROM [ContentOfSchedule] 
+                WHERE [ContentOfSchedule].[StartOn] BETWEEN @periodStart AND @periodEnd
+                GROUP BY [ContentOfSchedule].[StartOn]) Periods
             
             LEFT OUTER JOIN
             [ContentOfSchedule] Rasp 
             ON Periods.sd = Rasp.StartOn
             AND Rasp.[Lecturer] IN (SELECT OID FROM [Lecturer] WHERE [Lecturer].Person = @prep)
             AND Rasp.Schedule IN (SELECT OID FROM Schedule WHERE Status = '0')
-            #AND Rasp.Schedule IN (SELECT OID FROM Schedule WHERE FormOfEducation IN (4,6))
 
             Left JOIN [Lecturer] as Prep
             ON rasp.[Lecturer] = Prep.[OID]
