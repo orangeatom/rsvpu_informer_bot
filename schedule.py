@@ -1,7 +1,8 @@
 """this module send query to ScheduleDB to get Schedule"""
 
-import pymssql
 from config import ScheduleDatabase
+from enum import Enum
+import pymssql
 import sql
 import datetime
 import time
@@ -25,7 +26,6 @@ primary_schedule_time = ('1️⃣ 08:00',
                          '6️⃣ 17:15',
                          '7️⃣ 19:00')
 
-
 senior_schedule_time = ('1️⃣ 08:00',
                         '2️⃣ 09:45',
                         '3️⃣ 11:30',
@@ -37,14 +37,13 @@ senior_schedule_time = ('1️⃣ 08:00',
 class DatabaseError(Exception):
     pass
 
-class ScheduleType():
+class ScheduleType(Enum):
     group = 0
     teacher = 1
     auditorium = 2
-    pass
 
-class days():
 
+class Days:
     def tomorrow(self):
         """return datetime object with tomorrow """
         return datetime.timedelta(days=1) + datetime.date.today()
@@ -119,11 +118,6 @@ def get_schedule(day):
 
 
 
-def get_schedule_tomorrow():
-    pass
-
-def get_schedule_week():
-    pass
 
 
 def get_schedule_date(date):
@@ -132,6 +126,18 @@ def get_schedule_date(date):
 
 def get_teachers_of_subjects():
     """"""
+
+
+def get_schedule(type, date, id):
+    """this function return schedule in dictionary"""
+    if type == ScheduleType.group:
+        pass
+    elif type == ScheduleType.teacher:
+        pass
+    elif type == ScheduleType.auditorium:
+        pass
+    else:
+        """generate error"""
 
 def get_groups():
     """"""
