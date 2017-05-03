@@ -106,24 +106,6 @@ def _schedule_auditorium_query():
         print('error')
 
 
-
-
-def get_schedule(day):
-    cursor = connect.cursor()
-    try:
-        b = 1/0
-    except:
-        raise DatabaseError
-    connect.close()
-
-
-
-
-
-def get_schedule_date(date):
-    """"""
-
-
 def get_teachers_of_subjects():
     """"""
 
@@ -139,11 +121,11 @@ def get_schedule(type, date, id):
     else:
         """generate error"""
 
+
 def get_groups():
     """"""
     cursor = connect.cursor()
     cursor.execute("select Name from [Group] ")
-
 
 
 def get_teachers():
@@ -151,7 +133,8 @@ def get_teachers():
     cursor = connect.cursor()
     cursor.execute("select Name from [Lecturer] ")
 
-def get_auditorium():
+
+def get_classroom():
     """"""
     cursor = connect.cursor()
     cursor.execute("select Name from [Auditorium]")
