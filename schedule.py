@@ -37,6 +37,7 @@ senior_schedule_time = ('1️⃣ 08:00',
 class DatabaseError(Exception):
     pass
 
+
 class ScheduleType(Enum):
     group = 0
     teacher = 1
@@ -113,7 +114,7 @@ def get_teachers_of_subjects():
 def get_schedule(type, date, id):
     """this function return schedule in dictionary"""
     if type == ScheduleType.group:
-        pass
+        _schedule_group_query(id,date)
     elif type == ScheduleType.teacher:
         pass
     elif type == ScheduleType.auditorium:
@@ -122,29 +123,57 @@ def get_schedule(type, date, id):
         """generate error"""
 
 
-def get_groups():
+def get_groups(sought = None):
+    """return all groups or only the matching with """
+    cursor = connect.cursor()
+    if sought is None:
+        cursor.execute("select Name from [Group] ")
+    else:
+        cursor.execute("select Name from [Group] Where Lower(Name) LIKE '%{0}%'".format(sought))
+    raw = cursor.fetchone()
+    groups = [raw]
+    while raw:
+        raw=cursor.fetchone()
+        groups.append(raw)
+    return groups
+
+
+def get_teachers(sought = None):
     """"""
     cursor = connect.cursor()
-    cursor.execute("select Name from [Group] ")
+    if sought is None:
+        cursor.execute("select Name from [Lecturer]")
+    else:
+        cursor.execute("select Name frmo [Lecturer] where lower(Name) like '%{0}%'".format(sought))
+    raw = cursor.fetchone()
+    lecturers = [raw]
+    while raw:
+        raw = cursor.fetchone()
+        lecturers.append(raw)
+    return lecturers
 
 
-def get_teachers():
+def get_classrooms(sought = None):
     """"""
     cursor = connect.cursor()
-    cursor.execute("select Name from [Lecturer] ")
-
-
-def get_classroom():
-    """"""
-    cursor = connect.cursor()
-    cursor.execute("select Name from [Auditorium]")
+    if sought is None:
+        cursor.execute("select Name from [Auditorium]")
+    else:
+        cursor.execute("select Name from [Auditorium] where lower(Name) like '%{0}%'".format(sought))
+    raw = cursor.fetchone()
+    classrooms = [raw]
+    while raw:
+        raw = cursor.fetchone()
+        classrooms.append(raw)
+    return classrooms
 
 
 total = 0
-count = 100
+count = 1
 for timer in range(count):
         tt = time.time()
-        get_groups()
+        print(get_classrooms('2-9'))
+
         tt2 = time.time()
         total = total+(tt2-tt)
 

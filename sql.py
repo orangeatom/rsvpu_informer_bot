@@ -163,3 +163,11 @@ DECLARE @aud int = {id}
 
             WHERE StartOn IS NOT NULL
 '''
+
+
+lecturers_stream = '''
+    SELECT DISTINCT Gr.[Name] as 'Group', Gr.[OID]
+    FROM [Group] Gr, [StaffOfStream] Str
+    where Str.[Stream]={stream_id} and Str.[Group]=Gr.[OID]
+
+'''
