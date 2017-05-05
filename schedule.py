@@ -77,10 +77,10 @@ def _schedule_group_query(group_id, day):
 
 
 
-def _schedule_teacher_query():
+def _schedule_teacher_query(teacher_id, day):
     cursor = connect.cursor()
     try:
-        cursor.execute(sql.schedule_teacher.format(date=tomorrow(), id='156'))
+        cursor.execute(sql.schedule_teacher.format(date=day, id=teacher_id))
         row = cursor.fetchone()
         while row:
             # get data from row
@@ -92,10 +92,10 @@ def _schedule_teacher_query():
         print('error')
 
 
-def _schedule_auditorium_query():
+def _schedule_classroom_query(classroom_id, day):
     cursor = connect.cursor()
     try:
-        cursor.execute(sql.schedule_auditorium.format(date=tomorrow(), id='156'))
+        cursor.execute(sql.schedule_auditorium.format(date=day, id=classroom_id))
         row = cursor.fetchone()
         while row:
             # get data from row
@@ -113,18 +113,20 @@ def get_teachers_of_subjects():
 
 def get_schedule(type, date, id):
     """this function return schedule in dictionary"""
+    schedule = {}
     if type == ScheduleType.group:
-        _schedule_group_query(id,date)
+        schedule = _schedule_group_query(id,date)
     elif type == ScheduleType.teacher:
-        pass
+        schedule = _schedule_teacher_query()
     elif type == ScheduleType.auditorium:
-        pass
+        schedule = _schedule_classroom_query()
     else:
         """generate error"""
 
 
+
 def get_groups(group_substr = None):
-    """return all groups or only the matching with """
+    """return all groups or only the matching with math substr"""
     cursor = connect.cursor()
     if group_substr is None:
         cursor.execute("select Name from [Group] ")
@@ -139,7 +141,7 @@ def get_groups(group_substr = None):
 
 
 def get_teachers(teacher_substr = None):
-    """"""
+    """return all teachers or only the matching with math substr"""
     cursor = connect.cursor()
     if teacher_substr is None:
         cursor.execute("select Name from [Lecturer]")
@@ -154,7 +156,7 @@ def get_teachers(teacher_substr = None):
 
 
 def get_classrooms(group_substr = None):
-    """"""
+    """return all classrooms or only the matching with math substr"""
     cursor = connect.cursor()
     if group_substr is None:
         cursor.execute("select Name from [Auditorium]")
