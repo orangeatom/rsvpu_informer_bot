@@ -6,7 +6,6 @@ import pymssql
 import sql
 import datetime
 import time
-import re
 
 connect = pymssql.connect(server='127.0.0.1',
                           password=ScheduleDatabase.pwd,
@@ -49,10 +48,19 @@ class Days:
         """return datetime object with tomorrow """
         return datetime.timedelta(days=1) + datetime.date.today()
 
-
     def today(self):
         """return datetime object with today"""
         return datetime.date.today()
+
+
+def _prepare_schedule(day, name, classroom,number, teacher=None, group=None,  stream=None):
+    if teacher is not None and stream is None:
+        return  {day:[number,name,classroom,group]}
+    elif teacher is not None and stream is not None:
+        return {day: [number, name, classroom, stream]}
+    elif group is not None:
+        return {day:[number,name,classroom,group]}
+    pass
 
 
 def _schedule_group_query(group_id, day):
@@ -61,6 +69,7 @@ def _schedule_group_query(group_id, day):
     try:
         cursor.execute('select Course,FormOfEducation, Name from [Group] Where [Group].OID = {id}'.format(id=group_id))
         course = cursor.fetchone()
+        schedule = {day:{}}
         print(course)
         if course is not None:
 
@@ -71,10 +80,12 @@ def _schedule_group_query(group_id, day):
                 print(row)
                 print(row[0])
                 row = cursor.fetchone()
+        else:
+            pass
+            # todo error when group field is empty
 
     except:
         print('error')
-
 
 
 def _schedule_teacher_query(teacher_id, day):
@@ -102,13 +113,8 @@ def _schedule_classroom_query(classroom_id, day):
             print(row)
             print(row[0])
             row = cursor.fetchone()
-
     except:
         print('error')
-
-
-def get_teachers_of_subjects():
-    """"""
 
 
 def get_schedule(type, date, id):
@@ -122,10 +128,10 @@ def get_schedule(type, date, id):
         schedule = _schedule_classroom_query()
     else:
         """generate error"""
+    return schedule
 
 
-
-def get_groups(group_substr = None):
+def get_groups(group_substr=None):
     """return all groups or only the matching with math substr"""
     cursor = connect.cursor()
     if group_substr is None:
@@ -140,7 +146,7 @@ def get_groups(group_substr = None):
     return groups
 
 
-def get_teachers(teacher_substr = None):
+def get_teachers(teacher_substr=None):
     """return all teachers or only the matching with math substr"""
     cursor = connect.cursor()
     if teacher_substr is None:
@@ -155,7 +161,7 @@ def get_teachers(teacher_substr = None):
     return lecturers
 
 
-def get_classrooms(group_substr = None):
+def get_classrooms(group_substr=None):
     """return all classrooms or only the matching with math substr"""
     cursor = connect.cursor()
     if group_substr is None:
@@ -170,11 +176,17 @@ def get_classrooms(group_substr = None):
     return classrooms
 
 
+def get_teachers_of_subjects():
+    """"""
+
+
 total = 0
 count = 1
+day = input()
+group = str(input())
 for timer in range(count):
         tt = time.time()
-        print(get_classrooms('2-9'))
+        print(_schedule_group_query(day=datetime.date(day),group_id=group))
 
         tt2 = time.time()
         total = total+(tt2-tt)
