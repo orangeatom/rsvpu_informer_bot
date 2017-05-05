@@ -123,13 +123,13 @@ def get_schedule(type, date, id):
         """generate error"""
 
 
-def get_groups(sought = None):
+def get_groups(group_substr = None):
     """return all groups or only the matching with """
     cursor = connect.cursor()
-    if sought is None:
+    if group_substr is None:
         cursor.execute("select Name from [Group] ")
     else:
-        cursor.execute("select Name from [Group] Where Lower(Name) LIKE '%{0}%'".format(sought))
+        cursor.execute("select Name from [Group] Where Lower(Name) LIKE '%{0}%'".format(group_substr))
     raw = cursor.fetchone()
     groups = [raw]
     while raw:
@@ -138,13 +138,13 @@ def get_groups(sought = None):
     return groups
 
 
-def get_teachers(sought = None):
+def get_teachers(teacher_substr = None):
     """"""
     cursor = connect.cursor()
-    if sought is None:
+    if teacher_substr is None:
         cursor.execute("select Name from [Lecturer]")
     else:
-        cursor.execute("select Name frmo [Lecturer] where lower(Name) like '%{0}%'".format(sought))
+        cursor.execute("select Name from [Lecturer] where lower(Name) like '%{0}%'".format(teacher_substr))
     raw = cursor.fetchone()
     lecturers = [raw]
     while raw:
@@ -153,13 +153,13 @@ def get_teachers(sought = None):
     return lecturers
 
 
-def get_classrooms(sought = None):
+def get_classrooms(group_substr = None):
     """"""
     cursor = connect.cursor()
-    if sought is None:
+    if group_substr is None:
         cursor.execute("select Name from [Auditorium]")
     else:
-        cursor.execute("select Name from [Auditorium] where lower(Name) like '%{0}%'".format(sought))
+        cursor.execute("select Name from [Auditorium] where lower(Name) like '%{0}%'".format(group_substr))
     raw = cursor.fetchone()
     classrooms = [raw]
     while raw:
