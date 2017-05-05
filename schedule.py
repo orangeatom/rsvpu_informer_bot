@@ -33,6 +33,7 @@ senior_schedule_time = ('1️⃣ 08:00',
                         '6️⃣ 17:15',
                         '7️⃣ 19:00')
 
+
 class DatabaseError(Exception):
     pass
 
@@ -53,13 +54,13 @@ class Days:
         return datetime.date.today()
 
 
-def _prepare_schedule(day, name, classroom,number, teacher=None, group=None,  stream=None):
+def _prepare_schedule(day, name, classroom,number, teacher=None, group=None, stream=None):
     if teacher is not None and stream is None:
-        return  {day:[number,name,classroom,group]}
+        return {day: [number,name,classroom,group]}
     elif teacher is not None and stream is not None:
         return {day: [number, name, classroom, stream]}
     elif group is not None:
-        return {day:[number,name,classroom,group]}
+        return {day: [number,name,classroom,group]}
     pass
 
 
@@ -139,10 +140,11 @@ def get_groups(group_substr=None):
     else:
         cursor.execute("select Name from [Group] Where Lower(Name) LIKE '%{0}%'".format(group_substr))
     raw = cursor.fetchone()
-    groups = [raw]
+    groups = [raw[0]]
     while raw:
-        raw=cursor.fetchone()
-        groups.append(raw)
+        raw = cursor.fetchone()
+        if raw:
+            groups.append(raw[0])
     return groups
 
 
@@ -154,10 +156,11 @@ def get_teachers(teacher_substr=None):
     else:
         cursor.execute("select Name from [Lecturer] where lower(Name) like '%{0}%'".format(teacher_substr))
     raw = cursor.fetchone()
-    lecturers = [raw]
+    lecturers = [raw[0]]
     while raw:
         raw = cursor.fetchone()
-        lecturers.append(raw)
+        if raw:
+            lecturers.append(raw[0])
     return lecturers
 
 
@@ -169,29 +172,30 @@ def get_classrooms(group_substr=None):
     else:
         cursor.execute("select Name from [Auditorium] where lower(Name) like '%{0}%'".format(group_substr))
     raw = cursor.fetchone()
-    classrooms = [raw]
+    classrooms = [raw[0]]
     while raw:
         raw = cursor.fetchone()
-        classrooms.append(raw)
+        if raw:
+            classrooms.append(raw[0])
     return classrooms
 
 
 def get_teachers_of_subjects():
     """"""
 
-
+"""
 total = 0
 count = 1
 day = input()
 group = str(input())
 for timer in range(count):
         tt = time.time()
-        print(_schedule_group_query(day=datetime.date(day),group_id=group))
+        print(_schedule_group_query(day=datetime.date(day), group_id=group))
 
         tt2 = time.time()
         total = total+(tt2-tt)
 
 
-total=total/count
+total =total/count
 print(total)
-connect.close()
+connect.close()"""
