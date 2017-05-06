@@ -38,7 +38,7 @@ def text_handler(message):
     for gr in range(100):
         print(groups[gr])
         keyboard.row(groups[gr])
-    bot.reply_to(message, 'idinahuy', reply_markup=keyboard)
+    bot.send_message(message.chat.id, 'test', reply_markup=keyboard)
 
 
 # set locale to send weekdays in RU format
