@@ -4,15 +4,27 @@ import flask
 import schedule
 import pprint
 from time import time
+from peewee import *
 
 app = flask.Flask(__name__)
 
 bot = telebot.TeleBot(config.token)
 
+Weekdays = ('🌕 *Понедельник*',
+            '🌖 *Вторник*',
+            '🌗 *Среда*',
+            '🌘 *Четверг*',
+            '🌑 *Пятница*',
+            '🌒 *Суббота*',
+            '🌓 *Воскресенье*')
+
+localbase = config.localbase
+
 
 @bot.message_handler(commands=['/start'])
 def hello(message):
     """add user into base"""
+
 
 
 @bot.message_handler(content_types=['text'])
