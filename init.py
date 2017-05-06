@@ -1,4 +1,4 @@
-from config import localbase
+from telegram_bot import localbase
 import models
 
 localbase.connect()

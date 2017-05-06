@@ -5,12 +5,13 @@ from enum import Enum
 import pymssql
 import sql
 import datetime
+import os
 import time
 
 connect = pymssql.connect(server='127.0.0.1',
-                          password=ScheduleDatabase.pwd,
-                          database=ScheduleDatabase.dbname,
-                          user=ScheduleDatabase.user,
+                          password=os.environ['SCHEDULE_DB_PASS'],
+                          database=os.environ['SCHEDULE_DB'],
+                          user=os.environ['SCHEDULE_DB_USER'],
                           )
 
 FormOfEducation = {4: 'bachelor_full_day',
@@ -45,10 +46,12 @@ class ScheduleType(Enum):
 
 
 class Days:
+    @classmethod
     def tomorrow(self):
         """return datetime object with tomorrow """
         return datetime.timedelta(days=1) + datetime.date.today()
 
+    @classmethod
     def today(self):
         """return datetime object with today"""
         return datetime.date.today()

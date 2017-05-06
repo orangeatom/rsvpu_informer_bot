@@ -7,10 +7,11 @@ import pprint
 from time import time
 from peewee import *
 from models import User
+import os
 
 app = flask.Flask(__name__)
 
-bot = telebot.TeleBot(config.token)
+bot = telebot.TeleBot(os.environ['TOKEN_BOT'])
 
 Weekdays = ('🌕 *Понедельник*',
             '🌖 *Вторник*',
@@ -20,7 +21,7 @@ Weekdays = ('🌕 *Понедельник*',
             '🌒 *Суббота*',
             '🌓 *Воскресенье*')
 
-localbase = config.localbase
+localbase = SqliteDatabase('base.db')
 print('local db connect')
 localbase.connect()
 
@@ -32,8 +33,12 @@ def hello(message):
 
 @bot.message_handler(content_types=['text'])
 def text_handler(message):
-    var = schedule.get_groups()
-    print(var)
+    groups = schedule.get_groups()
+    keyboard = telebot.types.ReplyKeyboardMarkup()
+    for gr in range(100):
+        print(groups[gr])
+        keyboard.row(groups[gr])
+    bot.reply_to(message, 'idinahuy', reply_markup=keyboard)
 
 
 # set locale to send weekdays in RU format
