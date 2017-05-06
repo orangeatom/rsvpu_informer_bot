@@ -54,13 +54,13 @@ class Days:
         return datetime.date.today()
 
 
-def _prepare_schedule(day, name, classroom,number, teacher=None, group=None, stream=None):
+def _prepare_schedule(day, name, classroom, pair_num, teacher=None, group=None, stream=None):
     if teacher is not None and stream is None:
-        return {day: [number,name,classroom,group]}
+        return {day: [pair_num, name, classroom, group]}
     elif teacher is not None and stream is not None:
-        return {day: [number, name, classroom, stream]}
+        return {day: [pair_num, name, classroom, stream]}
     elif group is not None:
-        return {day: [number,name,classroom,group]}
+        return {day: [pair_num, name, classroom, group]}
     pass
 
 
