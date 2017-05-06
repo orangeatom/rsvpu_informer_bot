@@ -18,22 +18,6 @@ FormOfEducation = {4: 'bachelor_full_day',
                    5: 'half_day',
                    6: 'master'}
 
-primary_schedule_time = ('1️⃣ 08:00',
-                         '2️⃣ 09:45',
-                         '3️⃣ 12:00',
-                         '4️⃣ 13:45',
-                         '5️⃣ 15:30',
-                         '6️⃣ 17:15',
-                         '7️⃣ 19:00')
-
-senior_schedule_time = ('1️⃣ 08:00',
-                        '2️⃣ 09:45',
-                        '3️⃣ 11:30',
-                        '4️⃣ 13:45',
-                        '5️⃣ 15:30',
-                        '6️⃣ 17:15',
-                        '7️⃣ 19:00')
-
 
 class DatabaseError(Exception):
     pass
@@ -73,11 +57,10 @@ def _schedule_group_query(group_id, day):
     try:
         cursor.execute('select Course,FormOfEducation, Name from [Group] Where [Group].OID = {id}'.format(id=group_id))
         course = cursor.fetchone()
-        schedule = {day:{}}
+        schedule = {day: {}}
         print(course)
-        if course is not None:
-
-            cursor.execute(sql.schedule_group.format(date=day(), id =group_id))
+        if course:
+            cursor.execute(sql.schedule_group.format(date=day, id=group_id))
             row = cursor.fetchone()
             while row:
                 # get data from row
@@ -186,19 +169,19 @@ def get_classrooms(group_substr=None):
 def get_teachers_of_subjects():
     """"""
 
-"""
+
 total = 0
 count = 1
-day = input()
-group = str(input())
+
 for timer in range(count):
         tt = time.time()
-        print(_schedule_group_query(day=datetime.date(day), group_id=group))
+        _schedule_group_query(1486, Days.tomorrow())
+        _schedule_teacher_query(55, '08.05.17')
 
         tt2 = time.time()
         total = total+(tt2-tt)
 
 
-total =total/count
+total = total/count
 print(total)
-connect.close()"""
+connect.close()
