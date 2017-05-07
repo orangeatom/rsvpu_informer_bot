@@ -3,17 +3,15 @@ DECLARE @periodStart datetime = '{date} 00:00:00'
 DECLARE @periodEnd datetime = '{date} 23:59:59'
 DECLARE @group int = {id}
         SELECT 
-                Rasp.[StartTime], 
-                rasp.[group] as GroupName, 
-                rasp.[stream] as Stream, 
-                rasp.[subgroup] as Subgroup, 
-                Prep.[FIO] as 'Prepod', 
-                Disp.[Name] as 'Disciplina',
-                Vid.[Abbr] as 'Vid', 
-                Rasp.[Note], Aud.[Name] as 'Aud', 
-                Aud.[OID] as 'Aud_id', 
-                Para.[Number] as 'Para', 
-                SGr.[Name] as SubGroupName
+                Rasp.[StartTime] as start_time, 
+                rasp.[group] as group_name, 
+                rasp.[stream] as stream, 
+                rasp.[subgroup] as subgroup, 
+                Prep.[FIO] as 'teacher', 
+                Disp.[Name] as 'subject',
+                Vid.[Abbr] as 'type', 
+                Rasp.[Note], Aud.[Name] as 'classroom', 
+                SGr.[Name] as subgroup_name
 
             FROM 
             
@@ -68,17 +66,14 @@ DECLARE @prep int = {id}
 
         SELECT 
             Rasp.[StartTime], 
-            rasp.[group] as GroupName, 
-            Prep.[FIO] as 'Prepod', 
-            Prep.[Person] as 'Prepod_id',
-            Disp.[Name] as 'Disciplina', 
-            Vid.[Abbr] as 'Vid', 
+            rasp.[group] as GroupId, 
+            [Group].Name,
+            Prep.[FIO] as 'Teacher', 
+            Disp.[Name] as 'Subject', 
+            Vid.[Abbr] as 'Type', 
             Rasp.[Note], 
-            Aud.[Name] as 'Aud', 
-            Aud.[OID] as 'Aud_id', 
-            Para.[Number] as 'Para', 
+            Aud.[Name] as 'Classroom', 
             rasp.[stream] as Stream, 
-            rasp.[subgroup] as Subgroup, 
             SGr.[Name] as SubGroupName
             
             FROM 
@@ -102,9 +97,6 @@ DECLARE @prep int = {id}
             Left JOIN [Auditorium] Aud
             ON Rasp.[Auditorium]=Aud.[OID]
 
-            Left JOIN [ContentTableOfLesson] Para
-            ON Rasp.[ContentTableOfLesson]=Para.[OID]
-
             Left JOIN [KindOfWork] Vid
             ON Rasp.[KindOfWork]=Vid.[OID]
 
@@ -113,6 +105,8 @@ DECLARE @prep int = {id}
 
             Left JOIN [Schedule] S
             ON Rasp.[Schedule]=S.[OID]
+            
+            left join [Group] on Sgr.[Group] = [Group].[OID]
 
             WHERE StartOn IS NOT NULL
 '''
@@ -123,13 +117,26 @@ DECLARE @periodEnd datetime = '{date} 23:59:59'
 DECLARE @aud int = {id}
 
         SELECT 
-            CONVERT(nvarchar(50), Rasp.[StartOn], 108) as StartOn, Rasp.[EndOn], Rasp.[StartTime], rasp.[group] as GroupName, Prep.[FIO] as 'Prepod', Prep.[Person] as 'Prepod_id',
-            Disp.[Name] as 'Disciplina', Vid.[Abbr] as 'Vid', Rasp.[Note], Aud.[Name] as 'Aud', Aud.[OID] as 'Aud_id', Para.[Number] as 'Para', rasp.[stream] as Stream, rasp.[subgroup] as Subgroup, SGr.[Name] as SubGroupName
-            FROM 
-            (SELECT [ContentOfSchedule].[StartOn] AS sd
-            FROM [ContentOfSchedule] 
-            WHERE [ContentOfSchedule].[StartOn] BETWEEN @periodStart AND @periodEnd
-            GROUP BY [ContentOfSchedule].[StartOn]) Periods
+            CONVERT(nvarchar(50), Rasp.[StartOn], 108) as StartOn, 
+            Rasp.[EndOn], 
+            Rasp.[StartTime], 
+            rasp.[group] as GroupName, 
+            Prep.[FIO] as 'Prepod', 
+            Prep.[Person] as 'Prepod_id',
+            Disp.[Name] as 'Disciplina', 
+            Vid.[Abbr] as 'Vid', 
+            Rasp.[Note], 
+            Aud.[Name] as 'Aud', 
+            Aud.[OID] as 'Aud_id', 
+            Para.[Number] as 'Para', 
+            rasp.[stream] as Stream, 
+            rasp.[subgroup] as Subgroup, 
+            SGr.[Name] as SubGroupName
+                FROM 
+                (SELECT [ContentOfSchedule].[StartOn] AS sd
+                FROM [ContentOfSchedule] 
+                WHERE [ContentOfSchedule].[StartOn] BETWEEN @periodStart AND @periodEnd
+                GROUP BY [ContentOfSchedule].[StartOn]) Periods
             
             LEFT OUTER JOIN
             [ContentOfSchedule] Rasp 

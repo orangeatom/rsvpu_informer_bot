@@ -1,16 +1,17 @@
 """this module send query to ScheduleDB to get Schedule"""
 
 from enum import Enum
+import config
 import pymssql
 import sql
 import datetime
 import os
 import time
 
-connect = pymssql.connect(server='127.0.0.1',
-                          password=os.environ['SCHEDULE_DB_PASS'],
-                          database=os.environ['SCHEDULE_DB'],
-                          user=os.environ['SCHEDULE_DB_USER'],
+connect = pymssql.connect(server=config.SCHEDULEDB.server,
+                          password=config.SCHEDULEDB.pwd,
+                          database=config.SCHEDULEDB.db,
+                          user=config.SCHEDULEDB.user,
                           )
 
 db_value_form_of_education = {4: 'bachelor full day',
@@ -51,19 +52,9 @@ class Days:
         return datetime.date.today()
 
 
-def _prepare_schedule(day, name, classroom, pair_num, teacher=None, group=None, stream=None):
-    if teacher is not None and stream is None:
-        return {day: [pair_num, name, classroom, group]}
-    elif teacher is not None and stream is not None:
-        return {day: [pair_num, name, classroom, stream]}
-    elif group is not None:
-        return {day: [pair_num, name, classroom, group]}
-    pass
-
-
 def _schedule_group_query(group_id, day):
     """return schedule for entered group and selected day"""
-    cursor = connect.cursor()
+    cursor = connect.cursor(as_dict=True)
     try:
         cursor.execute('select Course, FormOfEducation, Name from [Group] Where [Group].OID = {id}'.format(id=group_id))
         course = cursor.fetchone()
@@ -75,7 +66,6 @@ def _schedule_group_query(group_id, day):
             while row:
                 # get data from row
                 print(row)
-                print(row[0])
                 row = cursor.fetchone()
         else:
             pass
@@ -86,14 +76,14 @@ def _schedule_group_query(group_id, day):
 
 
 def _schedule_teacher_query(teacher_id, day):
-    cursor = connect.cursor()
+    cursor = connect.cursor(as_dict=True)
     try:
         cursor.execute(sql.schedule_teacher.format(date=day, id=teacher_id))
         row = cursor.fetchone()
+        # StartTime, GroupId, GroupName, TeacherName, Subject, Type, Note, Classroom, Stream, SubGroupName
         while row:
             # get data from row
             print(row)
-            print(row[0])
             row = cursor.fetchone()
 
     except:
@@ -130,7 +120,7 @@ def get_schedule(type, date, id):
 
 def get_groups(group_substr=None, id=None):
     """return all groups or only the matching with math substr or set group id"""
-    cursor = connect.cursor()
+    cursor = connect.cursor(as_dict=True)
     if group_substr:
         cursor.execute("select Name from [Group] Where Lower(Name) LIKE '%{0}%'".format(group_substr))
     elif id:
@@ -139,11 +129,11 @@ def get_groups(group_substr=None, id=None):
         cursor.execute("select Name from [Group] ")
 
     raw = cursor.fetchone()
-    groups = [raw[0]]
+    groups = [raw['Name']]
     while raw:
         raw = cursor.fetchone()
         if raw:
-            groups.append(raw[0])
+            groups.append(raw['Name'])
     return groups
 
 
@@ -180,7 +170,7 @@ def get_classrooms(group_substr=None):
 
 
 def get_teachers_of_subjects():
-    """"""
+    """this function return teacher/teachers whose teach this subject"""
 
 
 total = 0
@@ -191,7 +181,7 @@ for timer in range(count):
         # nice example to test group ID-107 with id = 1709 and date 05.08.17
         _schedule_group_query(1709, '05.08.17')
         print('teacher')
-        print(_schedule_teacher_query(2050, '05.11.17'))
+        print(_schedule_teacher_query(2050, '05.12.17'))
 
         cur = connect.cursor()
         cur.execute(sql.lecturers_stream.format(stream_id=1753))
@@ -202,7 +192,7 @@ for timer in range(count):
             if raw:
                 print(raw)
         print('gruop')
-        print(get_groups(id=1641))
+        print(get_groups(id=1729))
         tt2 = time.time()
         total = total+(tt2-tt)
 
