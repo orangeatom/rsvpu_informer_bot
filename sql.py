@@ -3,18 +3,17 @@ DECLARE @periodStart datetime = '{date} 00:00:00'
 DECLARE @periodEnd datetime = '{date} 23:59:59'
 DECLARE @group int = {id}
         SELECT 
-            CONVERT(nvarchar(50), Rasp.[StartOn], 108) as StartOn,
-                    Rasp.[StartTime], 
-                    rasp.[group] as GroupName, 
-                    rasp.[stream] as Stream, 
-                    rasp.[subgroup] as Subgroup, 
-                    Prep.[FIO] as 'Prepod', 
-                    Disp.[Name] as 'Disciplina',
-                    Vid.[Abbr] as 'Vid', 
-                    Rasp.[Note], Aud.[Name] as 'Aud', 
-                    Aud.[OID] as 'Aud_id', 
-                    Para.[Number] as 'Para', 
-                    SGr.[Name] as SubGroupName
+                Rasp.[StartTime], 
+                rasp.[group] as GroupName, 
+                rasp.[stream] as Stream, 
+                rasp.[subgroup] as Subgroup, 
+                Prep.[FIO] as 'Prepod', 
+                Disp.[Name] as 'Disciplina',
+                Vid.[Abbr] as 'Vid', 
+                Rasp.[Note], Aud.[Name] as 'Aud', 
+                Aud.[OID] as 'Aud_id', 
+                Para.[Number] as 'Para', 
+                SGr.[Name] as SubGroupName
 
             FROM 
             
@@ -68,8 +67,6 @@ DECLARE @periodEnd datetime = '{date} 23:59:59'
 DECLARE @prep int = {id}
 
         SELECT 
-            CONVERT(nvarchar(50), Rasp.[StartOn], 108) as StartOn, 
-            Rasp.[EndOn], 
             Rasp.[StartTime], 
             rasp.[group] as GroupName, 
             Prep.[FIO] as 'Prepod', 

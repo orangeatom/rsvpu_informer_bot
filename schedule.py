@@ -1,6 +1,5 @@
 """this module send query to ScheduleDB to get Schedule"""
 
-from config import ScheduleDatabase
 from enum import Enum
 import pymssql
 import sql
@@ -14,9 +13,20 @@ connect = pymssql.connect(server='127.0.0.1',
                           user=os.environ['SCHEDULE_DB_USER'],
                           )
 
-FormOfEducation = {4: 'bachelor_full_day',
-                   5: 'half_day',
-                   6: 'master'}
+db_value_form_of_education = {4: 'bachelor full day',
+                              5: 'half day',
+                              6: 'master'}
+
+schedule_time = {
+    28800: '1️⃣ 08:00',
+    35100: '2️⃣ 09:45',
+    41400: '3️⃣ 11:30',
+    43200: '3️⃣ 12:00',
+    49500: '4️⃣ 13:45',
+    55800: '5️⃣ 15:30',
+    62100: '6️⃣ 17:15',
+    68400: '7️⃣ 19:00'
+}
 
 
 class DatabaseError(Exception):
@@ -55,7 +65,7 @@ def _schedule_group_query(group_id, day):
     """return schedule for entered group and selected day"""
     cursor = connect.cursor()
     try:
-        cursor.execute('select Course,FormOfEducation, Name from [Group] Where [Group].OID = {id}'.format(id=group_id))
+        cursor.execute('select Course, FormOfEducation, Name from [Group] Where [Group].OID = {id}'.format(id=group_id))
         course = cursor.fetchone()
         schedule = {day: {}}
         print(course)
@@ -118,13 +128,16 @@ def get_schedule(type, date, id):
     return schedule
 
 
-def get_groups(group_substr=None):
-    """return all groups or only the matching with math substr"""
+def get_groups(group_substr=None, id=None):
+    """return all groups or only the matching with math substr or set group id"""
     cursor = connect.cursor()
-    if group_substr is None:
-        cursor.execute("select Name from [Group] ")
-    else:
+    if group_substr:
         cursor.execute("select Name from [Group] Where Lower(Name) LIKE '%{0}%'".format(group_substr))
+    elif id:
+        cursor.execute("select Name from [Group] where OID = {0}".format(id))
+    else:
+        cursor.execute("select Name from [Group] ")
+
     raw = cursor.fetchone()
     groups = [raw[0]]
     while raw:
@@ -175,9 +188,21 @@ count = 1
 
 for timer in range(count):
         tt = time.time()
-        _schedule_group_query(1486, Days.tomorrow())
-        _schedule_teacher_query(55, '08.05.17')
+        # nice example to test group ID-107 with id = 1709 and date 05.08.17
+        _schedule_group_query(1709, '05.08.17')
+        print('teacher')
+        print(_schedule_teacher_query(2050, '05.11.17'))
 
+        cur = connect.cursor()
+        cur.execute(sql.lecturers_stream.format(stream_id=1753))
+        raw = cur.fetchone()
+        print(raw)
+        while raw:
+            raw = cur.fetchone()
+            if raw:
+                print(raw)
+        print('gruop')
+        print(get_groups(id=1641))
         tt2 = time.time()
         total = total+(tt2-tt)
 
