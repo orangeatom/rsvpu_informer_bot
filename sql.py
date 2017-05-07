@@ -116,7 +116,7 @@ DECLARE @periodStart datetime = '{date} 00:00:00'
 DECLARE @periodEnd datetime = '{date} 23:59:59'
 DECLARE @aud int = {id}
 
-        SELECT 
+        SELECT Distinct 
             CONVERT(nvarchar(50), Rasp.[StartOn], 108) as StartOn, 
             Rasp.[EndOn], 
             Rasp.[StartTime], 
@@ -133,14 +133,13 @@ DECLARE @aud int = {id}
             rasp.[subgroup] as Subgroup, 
             SGr.[Name] as SubGroupName
                 FROM 
+                
                 (SELECT [ContentOfSchedule].[StartOn] AS sd
                 FROM [ContentOfSchedule] 
-                WHERE [ContentOfSchedule].[StartOn] BETWEEN @periodStart AND @periodEnd
-                GROUP BY [ContentOfSchedule].[StartOn]) Periods
+                WHERE [ContentOfSchedule].[StartOn] BETWEEN @periodStart AND @periodEnd) Periods
             
             LEFT OUTER JOIN
-            [ContentOfSchedule] Rasp 
-            ON Periods.sd = Rasp.StartOn
+            [ContentOfSchedule] Rasp ON Periods.sd = Rasp.StartOn
             AND Rasp.[Auditorium] IN (SELECT OID FROM [Auditorium] WHERE [Auditorium].OID = @aud)
             AND Rasp.Schedule IN (SELECT OID FROM Schedule WHERE Status = '0')
 
@@ -170,8 +169,9 @@ DECLARE @aud int = {id}
 
 
 lecturers_stream = '''
-    SELECT DISTINCT Gr.[Name] as 'Group', Gr.[OID]
-    FROM [Group] Gr, [StaffOfStream] Str
-    where Str.[Stream]= {stream_id} and Str.[Group]=Gr.[OID]
+    SELECT DISTINCT [Group].[Name] as 'Group', 
+                    [Group].[OID]
+    FROM [Group] , [StaffOfStream] Str
+    where Str.[Stream]={stream_id} and Str.[Group]=[Group].[OID]
 
 '''

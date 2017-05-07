@@ -91,15 +91,16 @@ def _schedule_teacher_query(teacher_id, day):
 
 
 def _schedule_classroom_query(classroom_id, day):
-    cursor = connect.cursor()
+    cursor = connect.cursor(as_dict=True)
     try:
         cursor.execute(sql.schedule_auditorium.format(date=day, id=classroom_id))
         row = cursor.fetchone()
+        print(row)
         while row:
             # get data from row
-            print(row)
-            print(row[0])
             row = cursor.fetchone()
+            print(row)
+
     except:
         print('error')
 
@@ -182,7 +183,9 @@ for timer in range(count):
         _schedule_group_query(1709, '05.08.17')
         print('teacher')
         print(_schedule_teacher_query(2050, '05.12.17'))
-
+        print('classroom')
+        _schedule_classroom_query(219, '05.12.17')
+        print('endlcassroom')
         cur = connect.cursor()
         cur.execute(sql.lecturers_stream.format(stream_id=1753))
         raw = cur.fetchone()

@@ -10,4 +10,5 @@ __ScheduleDB = namedtuple('ScheduleDB', ['server', 'user', 'pwd', 'db'])
 SCHEDULEDB = __ScheduleDB('localhost',  # fixme
                           os.environ['SCHEDULE_DB_USER'],
                           os.environ['SCHEDULE_DB_PASS'],
-                          os.environ['SCHEDULE_DB'],)
+                          os.environ['SCHEDULE_DB'],
+                          )
