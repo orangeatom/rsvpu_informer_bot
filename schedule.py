@@ -6,6 +6,7 @@ import pymssql
 import sql
 import datetime
 import os
+from pprint import pprint
 import time
 
 connect = pymssql.connect(server=config.SCHEDULEDB.server,
@@ -54,11 +55,17 @@ class Days:
 
 def __prepare_schedule(schedule):
     """:return dictionary with schedule in format ready to send in bot module"""
-    formatet_schedule = {}
-    for pair in pair_time:
-        if schedule['start_time'] in pair:
-            print('methot one')
-    pass
+    formatet_schedule = []
+    print()
+    for _schedule in schedule:
+        if _schedule:
+            if _schedule['start_time'] in pair_time.keys():
+                formatet_schedule.append({'start_time': pair_time[_schedule['start_time']],
+                                          'subject': _schedule['subject'],
+                                          'type': _schedule['type'],
+                                          'classroom': _schedule['classroom'],
+                                          'target_audience': _schedule['teacher']
+                                          })
 
 
 def _schedule_group_query(group_id, day):
@@ -67,14 +74,17 @@ def _schedule_group_query(group_id, day):
     try:
         cursor.execute('select Name from [Group] Where [Group].OID = {id}'.format(id=group_id))
         course = cursor.fetchone()
-        schedule = {}
+        schedule = []
         print(course)
         if course:
             cursor.execute(sql.schedule_group.format(date=day, id=group_id))
             row = cursor.fetchone()
+            schedule.append(row)
             while row:
                 # get data from row
                 row = cursor.fetchone()
+                schedule.append(row)
+            __prepare_schedule(schedule)
         else:
             pass
             # todo error when group field is empty
