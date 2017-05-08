@@ -175,3 +175,9 @@ lecturers_stream = '''
     where Str.[Stream]={stream_id} and Str.[Group]=[Group].[OID]
 
 '''
+
+
+select_group = '''
+Select Name,OID from [Group] 
+inner JOIN Schedule on 
+'''

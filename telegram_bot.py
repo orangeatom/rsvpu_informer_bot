@@ -6,7 +6,6 @@ import locale
 import pprint
 from time import time
 from peewee import *
-from models import User
 import os
 
 app = flask.Flask(__name__)

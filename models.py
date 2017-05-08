@@ -1,6 +1,6 @@
 """this module contain models to this bot"""
 from peewee import *
-from config import localbase
+from telegram_bot import localbase
 
 
 class User(Model):
@@ -18,4 +18,25 @@ class User(Model):
         localbase
 
 
+class GroupFullDay(Model):
+    group_name = CharField(unique=True)
+    group_id = CharField(null=True)
 
+    class Meta:
+        database = localbase
+
+
+class GroupHalfDay(Model):
+    group_name = CharField(unique=True)
+    group_id = CharField(null=True)
+
+    class Meta:
+        database = localbase
+
+
+class Teacher(Model):
+    teacher_name = CharField(unique=True)
+    teacher_id = IntegerField(null=True)
+
+    class Meta:
+        database = localbase

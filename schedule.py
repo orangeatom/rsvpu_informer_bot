@@ -14,11 +14,11 @@ connect = pymssql.connect(server=config.SCHEDULEDB.server,
                           user=config.SCHEDULEDB.user,
                           )
 
-db_value_form_of_education = {4: 'bachelor full day',
-                              5: 'half day',
-                              6: 'master'}
+db_value_form_of_education = {'full day': '4, 6',
+                              'half day': 5,
+                              }
 
-schedule_time = {
+pair_time = {
     28800: '1️⃣ 08:00',
     35100: '2️⃣ 09:45',
     41400: '3️⃣ 11:30',
@@ -44,7 +44,7 @@ class Days:
     @classmethod
     def tomorrow(self):
         """return datetime object with tomorrow """
-        return datetime.timedelta(days=1) + datetime.date.today()
+        return datetime.date.today() + datetime.timedelta(days=1)
 
     @classmethod
     def today(self):
@@ -52,20 +52,28 @@ class Days:
         return datetime.date.today()
 
 
+def __prepare_schedule(schedule):
+    """:return dictionary with schedule in format ready to send in bot module"""
+    formatet_schedule = {}
+    for pair in pair_time:
+        if schedule['start_time'] in pair:
+            print('methot one')
+    pass
+
+
 def _schedule_group_query(group_id, day):
     """return schedule for entered group and selected day"""
     cursor = connect.cursor(as_dict=True)
     try:
-        cursor.execute('select Course, FormOfEducation, Name from [Group] Where [Group].OID = {id}'.format(id=group_id))
+        cursor.execute('select Name from [Group] Where [Group].OID = {id}'.format(id=group_id))
         course = cursor.fetchone()
-        schedule = {day: {}}
+        schedule = {}
         print(course)
         if course:
             cursor.execute(sql.schedule_group.format(date=day, id=group_id))
             row = cursor.fetchone()
             while row:
                 # get data from row
-                print(row)
                 row = cursor.fetchone()
         else:
             pass
@@ -80,10 +88,8 @@ def _schedule_teacher_query(teacher_id, day):
     try:
         cursor.execute(sql.schedule_teacher.format(date=day, id=teacher_id))
         row = cursor.fetchone()
-        # StartTime, GroupId, GroupName, TeacherName, Subject, Type, Note, Classroom, Stream, SubGroupName
         while row:
             # get data from row
-            print(row)
             row = cursor.fetchone()
 
     except:
@@ -91,6 +97,7 @@ def _schedule_teacher_query(teacher_id, day):
 
 
 def _schedule_classroom_query(classroom_id, day):
+    # todo change sql query
     cursor = connect.cursor(as_dict=True)
     try:
         cursor.execute(sql.schedule_auditorium.format(date=day, id=classroom_id))
@@ -111,23 +118,24 @@ def get_schedule(type, date, id):
     if type == ScheduleType.group:
         schedule = _schedule_group_query(id,date)
     elif type == ScheduleType.teacher:
-        schedule = _schedule_teacher_query()
+        schedule = _schedule_teacher_query(id,date)
     elif type == ScheduleType.auditorium:
-        schedule = _schedule_classroom_query()
+        schedule = _schedule_classroom_query(id,date)
     else:
         """generate error"""
     return schedule
 
 
-def get_groups(group_substr=None, id=None):
+def get_groups(group_substr=None, id=None, form_of_education=db_value_form_of_education['half day']):
     """return all groups or only the matching with math substr or set group id"""
     cursor = connect.cursor(as_dict=True)
     if group_substr:
-        cursor.execute("select Name from [Group] Where Lower(Name) LIKE '%{0}%'".format(group_substr))
+        cursor.execute("select Name from [Group] Where Lower(Name) LIKE '%{0}%' and FormOfEducation in ({1}})"
+                       .format(group_substr, form_of_education))
     elif id:
         cursor.execute("select Name from [Group] where OID = {0}".format(id))
     else:
-        cursor.execute("select Name from [Group] ")
+        cursor.execute("select Name from [Group] where FormOfEducation in ({0})".format(form_of_education))
 
     raw = cursor.fetchone()
     groups = [raw['Name']]
@@ -195,7 +203,7 @@ for timer in range(count):
             if raw:
                 print(raw)
         print('gruop')
-        print(get_groups(id=1729))
+        print(len(get_groups()))
         tt2 = time.time()
         total = total+(tt2-tt)
 
