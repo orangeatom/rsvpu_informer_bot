@@ -17,7 +17,7 @@ class User(Model):
     class Meta:
         localbase
 
-
+# FIXME delete it after getting query groups
 class GroupFullDay(Model):
     group_name = CharField(unique=True)
     group_id = CharField(null=True)

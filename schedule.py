@@ -15,8 +15,10 @@ connect = pymssql.connect(server=config.SCHEDULEDB.server,
                           user=config.SCHEDULEDB.user,
                           )
 
+cursor = connect.cursor(as_dict=True)
+
 db_value_form_of_education = {'full day': '4, 6',
-                              'half day': 5,
+                              'half day': '5',
                               }
 
 pair_time = {
@@ -53,71 +55,40 @@ class Days:
         return datetime.date.today()
 
 
-def __prepare_schedule(schedule):
-    """:return dictionary with schedule in format ready to send in bot module"""
-    formatet_schedule = []
-    print()
-    for _schedule in schedule:
-        if _schedule:
-            if _schedule['start_time'] in pair_time.keys():
-                formatet_schedule.append({'start_time': pair_time[_schedule['start_time']],
-                                          'subject': _schedule['subject'],
-                                          'type': _schedule['type'],
-                                          'classroom': _schedule['classroom'],
-                                          'target_audience': _schedule['teacher']
-                                          })
+def __prepare_schedule_teacher(schedule):
+    pass
 
 
 def _schedule_group_query(group_id, day):
     """return schedule for entered group and selected day"""
-    cursor = connect.cursor(as_dict=True)
+    cursor.execute('select Name from [Group] Where [Group].OID = {id}'.format(id=group_id))
+    course = cursor.fetchone()
+    print(course)
     try:
-        cursor.execute('select Name from [Group] Where [Group].OID = {id}'.format(id=group_id))
-        course = cursor.fetchone()
-        schedule = []
-        print(course)
         if course:
             cursor.execute(sql.schedule_group.format(date=day, id=group_id))
-            row = cursor.fetchone()
-            schedule.append(row)
-            while row:
-                # get data from row
-                row = cursor.fetchone()
-                schedule.append(row)
-            __prepare_schedule(schedule)
+            return cursor.fetchall()
         else:
             pass
-            # todo error when group field is empty
-
+        # todo error when group field is empty
     except:
-        print('error')
+        # todo make exception to db error
+        print('something wrong')
 
 
 def _schedule_teacher_query(teacher_id, day):
-    cursor = connect.cursor(as_dict=True)
     try:
         cursor.execute(sql.schedule_teacher.format(date=day, id=teacher_id))
-        row = cursor.fetchone()
-        while row:
-            # get data from row
-            row = cursor.fetchone()
-
+        return cursor.fetchall()
     except:
         print('error')
 
 
 def _schedule_classroom_query(classroom_id, day):
     # todo change sql query
-    cursor = connect.cursor(as_dict=True)
     try:
         cursor.execute(sql.schedule_auditorium.format(date=day, id=classroom_id))
-        row = cursor.fetchone()
-        print(row)
-        while row:
-            # get data from row
-            row = cursor.fetchone()
-            print(row)
-
+        return cursor.fetchall()
     except:
         print('error')
 

@@ -6,7 +6,6 @@ DECLARE @group int = {id}
                 Rasp.[StartTime] as start_time, 
                 rasp.[group] as group_name, 
                 rasp.[stream] as stream, 
-                rasp.[subgroup] as subgroup, 
                 Prep.[FIO] as 'teacher', 
                 Disp.[Name] as 'subject',
                 Vid.[Abbr] as 'type', 

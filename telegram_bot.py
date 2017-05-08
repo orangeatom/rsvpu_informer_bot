@@ -10,7 +10,7 @@ import os
 
 app = flask.Flask(__name__)
 
-bot = telebot.TeleBot(os.environ['TOKEN_BOT'])
+bot = telebot.TeleBot(config.TOKEN)
 
 Weekdays = ('🌕 *Понедельник*',
             '🌖 *Вторник*',
@@ -41,10 +41,9 @@ def text_handler(message):
     bot.send_message(message.chat.id, 'test', reply_markup=keyboard)
 
 
-# set locale to send weekdays in RU format
-locale.setlocale(locale.LC_ALL, ('RU', 'UTF8'))
-
 print('run')
 if __name__ == '__main__':
+    # set locale to send weekdays in RU format
+    locale.setlocale(locale.LC_ALL, ('RU', 'UTF8'))
 
     bot.polling(none_stop=True)

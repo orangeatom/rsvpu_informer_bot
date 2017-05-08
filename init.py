@@ -3,7 +3,7 @@ import requests
 from models import *
 from telegram_bot import localbase
 
-
+# FIXME more than 70% of this will be deleted when I gor a query for a groups
 schedule_url_full_day = 'http://www.rsvpu.ru/raspisanie-zanyatij-ochnoe-otdelenie/'
 schedule_url_half_day = 'http://www.rsvpu.ru/racpisanie-zanyatij-zaochnoe-otdelenie/'
 
