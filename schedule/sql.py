@@ -56,6 +56,7 @@ DECLARE @group int = {id}
            
 
                 WHERE StartOn IS NOT NULL
+                order by start_time
 '''
 
 schedule_teacher = '''
@@ -108,6 +109,7 @@ DECLARE @prep int = {id}
             left join [Group] on Sgr.[Group] = [Group].[OID]
 
             WHERE StartOn IS NOT NULL
+            order by start_time
 '''
 
 schedule_auditorium = '''
@@ -116,9 +118,7 @@ DECLARE @periodEnd datetime = '{date} 23:59:59'
 DECLARE @aud int = {id}
 
         SELECT Distinct 
-            CONVERT(nvarchar(50), Rasp.[StartOn], 108) as StartOn, 
-            Rasp.[EndOn], 
-            Rasp.[StartTime], 
+            Rasp.[StartTime] as start_time, 
             rasp.[group] as GroupName, 
             Prep.[FIO] as 'Prepod', 
             Prep.[Person] as 'Prepod_id',
@@ -164,6 +164,7 @@ DECLARE @aud int = {id}
             ON Rasp.[Schedule]=S.[OID]
 
             WHERE StartOn IS NOT NULL
+            order by start_time
 '''
 
 
