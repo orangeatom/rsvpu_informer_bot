@@ -2,32 +2,30 @@
 import datetime
 import pymssql
 from enum import Enum
-
 import config
+from pprint import pprint
 from schedule import sql
+
+
+pair_time = [
+    28800,
+    35100,
+    41400,
+    43200,
+    49500,
+    55800,
+    62100,
+    68400, ]
 
 connect = pymssql.connect(server=config.SCHEDULEDB.server,
                           password=config.SCHEDULEDB.pwd,
                           database=config.SCHEDULEDB.db,
-                          user=config.SCHEDULEDB.user,
-                          )
+                          user=config.SCHEDULEDB.user)
 
 cursor = connect.cursor(as_dict=True)
 
 db_value_form_of_education = {'full day': '4, 6',
-                              'half day': '5',
-                              }
-
-pair_time = {
-    28800: '1️⃣ 08:00',
-    35100: '2️⃣ 09:45',
-    41400: '3️⃣ 11:30',
-    43200: '3️⃣ 12:00',
-    49500: '4️⃣ 13:45',
-    55800: '5️⃣ 15:30',
-    62100: '6️⃣ 17:15',
-    68400: '7️⃣ 19:00'
-}
+                              'half day': '5'}
 
 
 class DatabaseError(Exception):
@@ -46,32 +44,32 @@ class ScheduleType(Enum):
 
 class Days:
     @classmethod
-    def tomorrow(self):
+    def tomorrow(self) -> datetime:
         """return datetime object with tomorrow """
         return datetime.date.today() + datetime.timedelta(days=1)
 
     @classmethod
-    def today(self):
+    def today(self) -> datetime:
         """return datetime object with today"""
         return datetime.date.today()
 
 
-def __prepare_schedule_teacher(schedule):
-    pass
-
-
-def __do_query(query):
+def __do_query(query) -> list:
     cursor = connect.cursor(as_dict=True)
     cursor.execute(query)
     return cursor.fetchall()
 
 
-def schedule_group_query(group_id, day):
+def schedule_group_query(group_id: int, day) -> dict:
     """return schedule for entered group and selected day"""
     group = __do_query(sql.select_group_name.format(id=group_id))
     try:
         if group:  # if database have this group
-            return __do_query(sql.schedule_group.format(date=day, id=group_id))
+            pairs = __do_query(sql.schedule_group.format(date=day, id=group_id))
+            schedule = {}
+            for pair in pair_time:
+                schedule[pair] = tuple(s for s in pairs if s['start_time'] == pair)
+            return schedule
         else:
             raise DatabaseError
         # todo error when group field is empty
@@ -80,15 +78,20 @@ def schedule_group_query(group_id, day):
         print('something wrong')
 
 
-def schedule_teacher_query(teacher_id, day):
+def schedule_teacher_query(teacher_id: int, day) -> dict:
     try:
-        return __do_query(sql.schedule_teacher.format(date=day, id=teacher_id))
+        pairs = __do_query(sql.schedule_teacher.format(date=day, id=teacher_id))
+        schedule = {}
+        for pair in pair_time:
+            schedule[pair] = tuple(s for s in schedule if s['start_time'] == pair)
+        return
     except:
         print('error')
 
 
-def schedule_classroom_query(classroom_id, day):
+def schedule_classroom_query(classroom_id, day) -> list:
     # todo change sql query
+    # todo make out in tuple
     try:
         return __do_query(sql.schedule_auditorium.format(date=day, id=classroom_id))
     except:
@@ -145,3 +148,12 @@ def get_teachers_of_subjects():
     """this function return teacher/teachers whose teach this subject"""
 
 
+def lecturers_stream(stream_id: int) -> list:
+    """:returns the list of groups integrated in this stream"""
+    return __do_query(sql.lecturers_stream.format(stream_id=stream_id))
+
+
+def get_groups_course(group_id):
+    """return course of this group"""
+    course = __do_query(sql.groups_course.format(group_id))
+    return course[0]['Course']

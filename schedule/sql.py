@@ -169,8 +169,7 @@ DECLARE @aud int = {id}
 
 
 lecturers_stream = '''
-    SELECT DISTINCT [Group].[Name] as 'Group', 
-                    [Group].[OID]
+    SELECT DISTINCT [Group].[Name] as 'Group'
     FROM [Group] , [StaffOfStream] Str
     where Str.[Stream]={stream_id} and Str.[Group]=[Group].[OID]
 
@@ -191,3 +190,8 @@ select_all_teachers = '''select Name from [Lecturer]'''
 
 selection_teachers_by_name = '''
 select Name from [Lecturer] where lower(Name) like '%{0}%'''
+
+groups_course = """
+select Course from [Group] 
+where OID ={0}
+"""
