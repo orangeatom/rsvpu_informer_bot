@@ -1,13 +1,10 @@
 """this module send query to ScheduleDB to get Schedule"""
-
-from enum import Enum
-import config
-import pymssql
-import sql
 import datetime
-import os
-from pprint import pprint
-import time
+import pymssql
+from enum import Enum
+
+import config
+from schedule import sql
 
 connect = pymssql.connect(server=config.SCHEDULEDB.server,
                           password=config.SCHEDULEDB.pwd,
@@ -37,6 +34,10 @@ class DatabaseError(Exception):
     pass
 
 
+class EmptyGroupError(DatabaseError):
+    pass
+
+
 class ScheduleType(Enum):
     group = 0
     teacher = 1
@@ -59,56 +60,45 @@ def __prepare_schedule_teacher(schedule):
     pass
 
 
-def _schedule_group_query(group_id, day):
+def __do_query(query):
+    cursor = connect.cursor(as_dict=True)
+    cursor.execute(query)
+    return cursor.fetchall()
+
+
+def schedule_group_query(group_id, day):
     """return schedule for entered group and selected day"""
-    cursor.execute('select Name from [Group] Where [Group].OID = {id}'.format(id=group_id))
-    course = cursor.fetchone()
-    print(course)
+    group = __do_query(sql.select_group_name.format(id=group_id))
     try:
-        if course:
-            cursor.execute(sql.schedule_group.format(date=day, id=group_id))
-            return cursor.fetchall()
+        if group:  # if database have this group
+            return __do_query(sql.schedule_group.format(date=day, id=group_id))
         else:
-            pass
+            raise DatabaseError
         # todo error when group field is empty
     except:
         # todo make exception to db error
         print('something wrong')
 
 
-def _schedule_teacher_query(teacher_id, day):
+def schedule_teacher_query(teacher_id, day):
     try:
-        cursor.execute(sql.schedule_teacher.format(date=day, id=teacher_id))
-        return cursor.fetchall()
+        return __do_query(sql.schedule_teacher.format(date=day, id=teacher_id))
     except:
         print('error')
 
 
-def _schedule_classroom_query(classroom_id, day):
+def schedule_classroom_query(classroom_id, day):
     # todo change sql query
     try:
-        cursor.execute(sql.schedule_auditorium.format(date=day, id=classroom_id))
-        return cursor.fetchall()
+        return __do_query(sql.schedule_auditorium.format(date=day, id=classroom_id))
     except:
         print('error')
-
-
-def get_schedule(type, date, id):
-    """this function return schedule in dictionary"""
-    schedule = {}
-    if type == ScheduleType.group:
-        schedule = _schedule_group_query(id,date)
-    elif type == ScheduleType.teacher:
-        schedule = _schedule_teacher_query(id,date)
-    elif type == ScheduleType.auditorium:
-        schedule = _schedule_classroom_query(id,date)
-    else:
-        """generate error"""
-    return schedule
 
 
 def get_groups(group_substr=None, id=None, form_of_education=db_value_form_of_education['half day']):
     """return all groups or only the matching with math substr or set group id"""
+    # fixme need query for a list of groups
+
     cursor = connect.cursor(as_dict=True)
     if group_substr:
         cursor.execute("select Name from [Group] Where Lower(Name) LIKE '%{0}%' and FormOfEducation in ({1}})"
@@ -129,18 +119,10 @@ def get_groups(group_substr=None, id=None, form_of_education=db_value_form_of_ed
 
 def get_teachers(teacher_substr=None):
     """return all teachers or only the matching with math substr"""
-    cursor = connect.cursor()
     if teacher_substr is None:
-        cursor.execute("select Name from [Lecturer]")
+        return __do_query(sql.select_all_teachers)
     else:
-        cursor.execute("select Name from [Lecturer] where lower(Name) like '%{0}%'".format(teacher_substr))
-    raw = cursor.fetchone()
-    lecturers = [raw[0]]
-    while raw:
-        raw = cursor.fetchone()
-        if raw:
-            lecturers.append(raw[0])
-    return lecturers
+        return __do_query(sql.selection_teachers_by_name.format(teacher_substr))
 
 
 def get_classrooms(group_substr=None):
@@ -163,32 +145,3 @@ def get_teachers_of_subjects():
     """this function return teacher/teachers whose teach this subject"""
 
 
-total = 0
-count = 1
-
-for timer in range(count):
-        tt = time.time()
-        # nice example to test group ID-107 with id = 1709 and date 05.08.17
-        _schedule_group_query(1709, '05.08.17')
-        print('teacher')
-        print(_schedule_teacher_query(2050, '05.12.17'))
-        print('classroom')
-        _schedule_classroom_query(219, '05.12.17')
-        print('endlcassroom')
-        cur = connect.cursor()
-        cur.execute(sql.lecturers_stream.format(stream_id=1753))
-        raw = cur.fetchone()
-        print(raw)
-        while raw:
-            raw = cur.fetchone()
-            if raw:
-                print(raw)
-        print('gruop')
-        print(len(get_groups()))
-        tt2 = time.time()
-        total = total+(tt2-tt)
-
-
-total = total/count
-print(total)
-connect.close()

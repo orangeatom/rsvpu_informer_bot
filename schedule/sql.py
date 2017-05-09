@@ -64,16 +64,16 @@ DECLARE @periodEnd datetime = '{date} 23:59:59'
 DECLARE @prep int = {id}
 
         SELECT 
-            Rasp.[StartTime], 
-            rasp.[group] as GroupId, 
-            [Group].Name,
-            Prep.[FIO] as 'Teacher', 
-            Disp.[Name] as 'Subject', 
-            Vid.[Abbr] as 'Type', 
+            Rasp.[StartTime] start_time, 
+            rasp.[group] as group_id, 
+            [Group].Name as group_name,
+            Prep.[FIO] as 'teacher', 
+            Disp.[Name] as 'subject', 
+            Vid.[Abbr] as 'type', 
             Rasp.[Note], 
-            Aud.[Name] as 'Classroom', 
-            rasp.[stream] as Stream, 
-            SGr.[Name] as SubGroupName
+            Aud.[Name] as 'classroom', 
+            rasp.[stream] as stream, 
+            SGr.[Name] as subgruop_name
             
             FROM 
                 (SELECT [ContentOfSchedule].[StartOn] AS sd
@@ -180,3 +180,13 @@ select_group = '''
 Select Name,OID from [Group] 
 inner JOIN Schedule on 
 '''
+
+
+select_group_name = '''
+select Name from [Group] Where [Group].OID ={id}
+'''
+
+select_all_teachers = '''select Name from [Lecturer]'''
+
+selection_teachers_by_name = '''
+select Name from [Lecturer] where lower(Name) like '%{0}%'''
