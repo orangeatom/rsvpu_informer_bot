@@ -9,6 +9,7 @@ DECLARE @group int = {id}
                 Prep.[FIO] as 'teacher', 
                 Disp.[Name] as 'subject',
                 Vid.[Abbr] as 'type', 
+                Rasp.[Note] as note,
                 Rasp.[Note], Aud.[Name] as 'classroom', 
                 SGr.[Name] as subgroup_name
 
@@ -71,7 +72,7 @@ DECLARE @prep int = {id}
             Prep.[FIO] as 'teacher', 
             Disp.[Name] as 'subject', 
             Vid.[Abbr] as 'type', 
-            Rasp.[Note], 
+            Rasp.[Note] as note, 
             Aud.[Name] as 'classroom', 
             rasp.[stream] as stream, 
             SGr.[Name] as subgruop_name
