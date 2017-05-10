@@ -44,13 +44,15 @@ def format_schedule_group(pairs: dict, date: datetime.date, gruop_id) -> str:
     text = ' {0}. _{1}_\n'.format(weekdays[date.weekday()], date.strftime('%d %B'))
     first, last = 0, 8
     pprint(pairs)
+    print(pair_time)
     for l in reversed(pair_time):
+        print(pair_time.index(l))
         if len(pairs[l[0]]) != 0:
             last = pair_time.index(l) + 1
             if last == 9:
                 last = 8
             break
-        elif len(pairs[l[0]]) == 0:
+        elif pair_time.index(l) == 0:
             text += '🎉Выходной!!!🎉'
             return text
 
@@ -67,7 +69,7 @@ def format_schedule_group(pairs: dict, date: datetime.date, gruop_id) -> str:
                                                                   subject['type'],
                                                                   subject['classroom'],
                                                                   subject['teacher'],
-                                                                  str(subject['subgroup_name'])[:-1]+' п/г) ' if subject['subgroup_name'] else '',
+                                                                  str(subject['subgroup_name'])[-3:-1] + ' п/г) ' if subject['subgroup_name'] else '',
                                                                   str(subject['note']) if subject['note'] else '')
         else:
             text += ' --- \n'
@@ -87,7 +89,7 @@ def hello(message):
 def text_handler(message):
     t = time()
     groups = schedule.get_groups()
-    for i in range(13, 14):
+    for i in range(19, 21):
         msg = schedule.schedule_group_query(1482, '05.{0}.17'.format(i))
         text = format_schedule_group(msg, datetime.date(17, 5, i), 1482)
         pprint(text)
