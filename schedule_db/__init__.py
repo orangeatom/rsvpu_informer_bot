@@ -6,7 +6,7 @@ import config
 from pprint import pprint
 from schedule_db import sql
 
-pair_time = [
+pair_time = (
     28800,
     35100,
     41400,
@@ -14,7 +14,7 @@ pair_time = [
     49500,
     55800,
     62100,
-    68400, ]
+    68400, )
 
 __connect = pymssql.connect(server=config.SCHEDULEDB.server,
                             password=config.SCHEDULEDB.pwd,
@@ -84,7 +84,8 @@ def schedule_teacher_query(teacher_id: int, day) -> dict:
         pairs = __do_query(sql.schedule_teacher.format(date=day, id=teacher_id))
         schedule = {}
         for pair in pair_time:
-            schedule[pair] = tuple(s for s in schedule if s['start_time'] == pair)
+            schedule[pair] = tuple(s for s in pairs if s['start_time'] == pair)
+        return schedule
     except:
         print('error')
 
@@ -109,9 +110,9 @@ def get_groups(group_substr=None, id=None, form_of_education=__db_value_form_of_
                     and gr_part2.lower() in group_substr.lower() \
                     and len(group_substr) <= len(gr['group_name'])+3:
                 result.append(gr)
-            elif group_substr in gr_part1.lower() and len(group_substr) <= len(gr_part1):
+            elif group_substr.lower() in gr_part1.lower() and len(group_substr) <= len(gr_part1):
                 result.append(gr)
-            elif group_substr in gr_part2.lower() and len(group_substr) <= len(gr_part2):
+            elif group_substr.lower() in gr_part2.lower() and len(group_substr) <= len(gr_part2):
                 result.append(gr)
     elif id:
         result = [gr for gr in groups if str(gr["group_id"]) == id]
@@ -148,7 +149,9 @@ def get_teachers_of_subjects():
 
 def lecturers_stream(stream_id: int) -> list:
     """:returns the list of groups integrated in this stream"""
-    return __do_query(sql.lecturers_stream.format(stream_id=stream_id))
+    stream = __do_query(sql.lecturers_stream.format(stream_id=stream_id))
+    stream_names = [gr['group'] for gr in stream]
+    return stream_names
 
 
 def get_groups_course(group_id):

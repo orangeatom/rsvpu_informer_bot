@@ -75,7 +75,7 @@ DECLARE @prep int = {id}
             Rasp.[Note] as note, 
             Aud.[Name] as 'classroom', 
             rasp.[stream] as stream, 
-            SGr.[Name] as subgruop_name
+            SGr.[Name] as subgroup_name
             
             FROM 
                 (SELECT [ContentOfSchedule].[StartOn] AS sd
@@ -88,6 +88,7 @@ DECLARE @prep int = {id}
             ON Periods.sd = Rasp.StartOn
             AND Rasp.[Lecturer] IN (SELECT OID FROM [Lecturer] WHERE [Lecturer].Person = @prep)
             AND Rasp.Schedule IN (SELECT OID FROM Schedule WHERE Status = '0')
+
 
             Left JOIN [Lecturer] as Prep
             ON rasp.[Lecturer] = Prep.[OID]
@@ -107,7 +108,7 @@ DECLARE @prep int = {id}
             Left JOIN [Schedule] S
             ON Rasp.[Schedule]=S.[OID]
             
-            left join [Group] on Sgr.[Group] = [Group].[OID]
+            left join [Group] on Rasp.[Group] = [Group].[OID]
 
             WHERE StartOn IS NOT NULL
             order by start_time
@@ -171,7 +172,7 @@ DECLARE @aud int = {id}
 
 
 lecturers_stream = '''
-    SELECT DISTINCT [Group].[Name] as 'Group'
+    SELECT DISTINCT [Group].[Name] as 'group'
     FROM [Group] , [StaffOfStream] Str
     where Str.[Stream]={stream_id} and Str.[Group]=[Group].[OID]
 
