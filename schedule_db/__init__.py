@@ -93,7 +93,7 @@ def schedule_classroom_query(classroom_id, day) -> list:
     # todo change sql query
     # todo make out in tuple
     try:
-        return __do_query(sql.schedule_auditorium.format(date=day, id=classroom_id))
+        return __do_query(sql.schedule_classroom.format(date=day, id=classroom_id))
     except:
         print('error')
 

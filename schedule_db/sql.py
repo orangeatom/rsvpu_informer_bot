@@ -114,7 +114,7 @@ DECLARE @prep int = {id}
 '''
 
 
-schedule_auditorium = '''
+schedule_classroom = '''
 DECLARE @periodStart datetime = '{date} 00:00:00'
 DECLARE @periodEnd datetime = '{date} 23:59:59'
 DECLARE @aud int = {id}
@@ -211,11 +211,55 @@ select Name from [Group] Where [Group].OID ={id}
 '''
 
 
-select_all_teachers = '''select Name from [Lecturer]'''
+select_all_teachers = '''
+SELECT DISTINCT Prep.[Person] as teacher_id,
+(CASE
+WHEN Prep.[Note] is Null
+THEN Prep.[FIO]
+ELSE
+case
+WHEN Prep.[Note] is not Null
+Then Prep.[Note]
+end
+END) as 'fullname', FIO as 'shortname'
+
+FROM [ContentOfSchedule] Rasp, [Lecturer] Prep, [Schedule] S
+where Rasp.[Lecturer]=Prep.[OID] and Rasp.Schedule=S.OID and S.[Status]='1'
+ORDER BY FIO
+'''
 
 
 selection_teachers_by_name = '''
 select Name from [Lecturer] where lower(Name) like '%{0}%'''
+
+
+select_classrooms = '''
+SELECT DISTINCT Cast(Bild.[Name] AS INT) as Build, Aud.[Name], Aud.OID as classroom_id,
+
+(CASE
+WHEN Bild.[Name] = '0'
+THEN 'Главный учебный корпус'
+ELSE
+case
+WHEN Bild.[Name] = '100'
+Then 'Дополнительно'
+ELSE
+case
+WHEN Bild.[Name] < '99'
+Then 'Учебный корпус №' + Bild.[Name]
+END
+end
+END) as Korpus
+
+FROM [Auditorium] Aud
+
+Left JOIN Building Bild
+ON Aud.Building = Bild.OID
+
+Group by Bild.[Name], Aud.[Name], Aud.OID
+
+ORDER BY Cast(Bild.[Name] AS INT), Aud.[Name]
+'''
 
 
 groups_course = """

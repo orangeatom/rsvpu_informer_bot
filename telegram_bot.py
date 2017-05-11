@@ -38,7 +38,7 @@ localbase.connect()
 
 
 def format_schedule_group(pairs: dict, date: datetime.date, group_id) -> str:
-    """Make schedule_db in str, ready to send end user"""
+    """Make schedule in str, ready to send end user"""
     course = schedule_db.get_groups_course(group_id)
     text = ' {0}. _{1}_\n'.format(weekdays[date.weekday()], date.strftime('%d %B'))
     first, last = 0, 8
@@ -74,7 +74,7 @@ def format_schedule_group(pairs: dict, date: datetime.date, group_id) -> str:
 
 
 def format_schedule_teacher(pairs: dict, date: datetime.date, teacher_id) -> str:
-    """Make schedule_db in str, ready to send end user"""
+    """Make schedule in str, ready to send end user"""
     text = ' {0}. _{1}_\n'.format(weekdays[date.weekday()], date.strftime('%d %B'))
     first, last = 0, 8
     for l in reversed(pair_time):

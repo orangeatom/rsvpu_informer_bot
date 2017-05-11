@@ -4,7 +4,9 @@ from config import LOCALBASE
 
 localbase = LOCALBASE
 
+
 class User(Model):
+    """this model contain user data"""
     last_action = DateTimeField(null=True)
     news = IntegerField(null=True)
     number_of_queries = IntegerField(null=True)
@@ -18,29 +20,3 @@ class User(Model):
     class Meta:
         database = localbase
 
-
-class GroupFullDay(Model):
-    # FIXME delete it after getting query groups
-    group_name = CharField(unique=True)
-    group_id = CharField(null=True)
-
-    class Meta:
-        database = localbase
-
-
-class GroupHalfDay(Model):
-    # FIXME delete it after getting query groups
-    group_name = CharField(unique=True)
-    group_id = CharField(null=True)
-
-    class Meta:
-        database = localbase
-
-
-class Teacher(Model):
-    # FIXME delete it after getting query groups
-    teacher_name = CharField(unique=True)
-    teacher_id = IntegerField(null=True)
-
-    class Meta:
-        database = localbase
