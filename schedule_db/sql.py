@@ -113,6 +113,7 @@ DECLARE @prep int = {id}
             order by start_time
 '''
 
+
 schedule_auditorium = '''
 DECLARE @periodStart datetime = '{date} 00:00:00'
 DECLARE @periodEnd datetime = '{date} 23:59:59'
@@ -177,22 +178,49 @@ lecturers_stream = '''
 '''
 
 
-select_group = '''
-Select Name,OID from [Group] 
-inner JOIN Schedule on 
-'''
+select_groups = '''
+select distinct gr.Name as group_name,gr.group_id
+from
+  (
+  SELECT Distinct gr.OID as group_id, gr.Name
+  from [Group] gr, [SubGroup] sgr, [ContentOfSchedule] Rasp, [Schedule] S
+  where
+  gr.[OID] = sgr.[Group] and sgr.[OID] = rasp.SubGroup
+  and Rasp.Schedule=S.OID and S.[Status]='0'
+  AND Rasp.Schedule IN (SELECT OID FROM Schedule WHERE FormOfEducation IN ({0}))
+
+  UNION all
+  SELECT Distinct gr.OID as group_id, gr.Name
+  from [Group] gr, [ContentOfSchedule] Rasp, [Schedule] S
+  where
+  gr.[OID] = rasp.[Group] and Rasp.Schedule=S.OID and S.[Status]='0'
+  AND Rasp.Schedule IN (SELECT OID FROM Schedule WHERE FormOfEducation IN ({0}))
+
+  UNION all
+  SELECT Distinct gr.OID as group_id, gr.Name
+  from [Group] gr, [StaffOfStream] str, [ContentOfSchedule] Rasp, [Schedule] S
+  where
+  gr.[OID] = str.[Group] and str.[Stream] = rasp.Stream and Rasp.Schedule=S.OID
+  and S.[Status]='0' AND Rasp.Schedule IN (SELECT OID FROM Schedule WHERE FormOfEducation IN ({0}))
+
+  ) as gr'''
 
 
 select_group_name = '''
 select Name from [Group] Where [Group].OID ={id}
 '''
 
+
 select_all_teachers = '''select Name from [Lecturer]'''
+
 
 selection_teachers_by_name = '''
 select Name from [Lecturer] where lower(Name) like '%{0}%'''
+
 
 groups_course = """
 select Course from [Group] 
 where OID ={0}
 """
+
+

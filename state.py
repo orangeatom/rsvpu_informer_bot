@@ -1,4 +1,0 @@
-class BaseState:
-    """Base State"""
-
-

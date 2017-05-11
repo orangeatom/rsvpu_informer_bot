@@ -1,11 +1,13 @@
 from bs4 import BeautifulSoup
 import requests
 from models import *
-from telegram_bot import localbase
+from config import LOCALBASE
 
 # FIXME more than 70% of this will be deleted when I gor a query for a groups
 schedule_url_full_day = 'http://www.rsvpu.ru/raspisanie-zanyatij-ochnoe-otdelenie/'
 schedule_url_half_day = 'http://www.rsvpu.ru/racpisanie-zanyatij-zaochnoe-otdelenie/'
+
+localbase = LOCALBASE
 
 
 def validate_option(opt):
@@ -46,7 +48,6 @@ try:
 except:
     pass
 localbase.create_tables([GroupFullDay, GroupHalfDay, Teacher], safe=True)
-localbase.create_table(User)
 localbase.close()
 
 schedule_id = update_links()
@@ -54,7 +55,6 @@ schedule_id = update_links()
 groups_full_day, groups_half_day, teachers = schedule_id['groups_full_day'], \
                                              schedule_id['groups_half_day'], \
                                              schedule_id['teachers']
-
 
 print('fill fields of groups full day')
 for group in groups_full_day:

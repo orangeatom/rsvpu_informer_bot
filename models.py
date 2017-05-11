@@ -1,7 +1,8 @@
 """this module contain models to this bot"""
 from peewee import *
-from telegram_bot import localbase
+from config import LOCALBASE
 
+localbase = LOCALBASE
 
 class User(Model):
     last_action = DateTimeField(null=True)

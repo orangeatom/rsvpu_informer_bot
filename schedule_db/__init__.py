@@ -4,8 +4,7 @@ import pymssql
 from enum import Enum
 import config
 from pprint import pprint
-from schedule import sql
-
+from schedule_db import sql
 
 pair_time = [
     28800,
@@ -17,15 +16,16 @@ pair_time = [
     62100,
     68400, ]
 
-connect = pymssql.connect(server=config.SCHEDULEDB.server,
-                          password=config.SCHEDULEDB.pwd,
-                          database=config.SCHEDULEDB.db,
-                          user=config.SCHEDULEDB.user)
+__connect = pymssql.connect(server=config.SCHEDULEDB.server,
+                            password=config.SCHEDULEDB.pwd,
+                            database=config.SCHEDULEDB.db,
+                            user=config.SCHEDULEDB.user)
 
-cursor = connect.cursor(as_dict=True)
+__cursor = __connect.cursor(as_dict=True)
 
-db_value_form_of_education = {'full day': '4, 6',
-                              'half day': '5'}
+__db_value_form_of_education = {'full day': '4, 6',
+                                'half day': '5, 6',
+                                'all': '4, 5, 6'}
 
 
 class DatabaseError(Exception):
@@ -55,13 +55,13 @@ class Days:
 
 
 def __do_query(query) -> list:
-    cursor = connect.cursor(as_dict=True)
+    cursor = __connect.cursor(as_dict=True)
     cursor.execute(query)
     return cursor.fetchall()
 
 
 def schedule_group_query(group_id: int, day) -> dict:
-    """return schedule for entered group and selected day"""
+    """return schedule_db for entered group and selected day"""
     group = __do_query(sql.select_group_name.format(id=group_id))
     try:
         if group:  # if database have this group
@@ -79,12 +79,12 @@ def schedule_group_query(group_id: int, day) -> dict:
 
 
 def schedule_teacher_query(teacher_id: int, day) -> dict:
+    # todo
     try:
         pairs = __do_query(sql.schedule_teacher.format(date=day, id=teacher_id))
         schedule = {}
         for pair in pair_time:
             schedule[pair] = tuple(s for s in schedule if s['start_time'] == pair)
-        return
     except:
         print('error')
 
@@ -98,26 +98,24 @@ def schedule_classroom_query(classroom_id, day) -> list:
         print('error')
 
 
-def get_groups(group_substr=None, id=None, form_of_education=db_value_form_of_education['half day']):
+def get_groups(group_substr=None, id=None, form_of_education=__db_value_form_of_education['all']) -> list:
     """return all groups or only the matching with math substr or set group id"""
-    # fixme need query for a list of groups
-
-    cursor = connect.cursor(as_dict=True)
+    groups = __do_query(sql.select_groups.format(form_of_education))
+    result = []
     if group_substr:
-        cursor.execute("select Name from [Group] Where Lower(Name) LIKE '%{0}%' and FormOfEducation in ({1}})"
-                       .format(group_substr, form_of_education))
+        for gr in groups:
+            gr_part1, gr_part2 = gr['group_name'].split('-')
+            if gr_part1.lower() in group_substr.lower() \
+                    and gr_part2.lower() in group_substr.lower() \
+                    and len(group_substr) <= len(gr['group_name'])+3:
+                result.append(gr)
+            elif group_substr in gr_part1.lower() and len(group_substr) <= len(gr_part1):
+                result.append(gr)
+            elif group_substr in gr_part2.lower() and len(group_substr) <= len(gr_part2):
+                result.append(gr)
     elif id:
-        cursor.execute("select Name from [Group] where OID = {0}".format(id))
-    else:
-        cursor.execute("select Name from [Group] where FormOfEducation in ({0})".format(form_of_education))
-
-    raw = cursor.fetchone()
-    groups = [raw['Name']]
-    while raw:
-        raw = cursor.fetchone()
-        if raw:
-            groups.append(raw['Name'])
-    return groups
+        result = [gr for gr in groups if str(gr["group_id"]) == id]
+    return result
 
 
 def get_teachers(teacher_substr=None):
@@ -130,7 +128,7 @@ def get_teachers(teacher_substr=None):
 
 def get_classrooms(group_substr=None):
     """return all classrooms or only the matching with math substr"""
-    cursor = connect.cursor()
+    cursor = __connect.cursor()
     if group_substr is None:
         cursor.execute("select Name from [Auditorium]")
     else:
