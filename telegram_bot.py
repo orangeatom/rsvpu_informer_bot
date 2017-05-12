@@ -33,6 +33,62 @@ localbase = config.LOCALBASE
 print('local db connect')
 localbase.connect()
 
+important_links = '''
+[timeline](http://timeline.rsvpu.ru) - Информационная система 
+
+[Электронная библиотека](http://umkd.rsvpu.ru) - Скачайте нужное вам методическое пособие
+
+[Мои документы](http://www.rsvpu.ru/moi-dokumenty/) - Закажи любую справку в *одном* месте
+'''
+
+primary_timetable = '''
+*I*    1) 08:00 - 08:45
+     2) 08:50 - 09:35
+
+*II*   1) 09:45 - 10:30
+     2) 10:35 - 11:20
+
+*Перерыв 40 минут*
+
+*III*  1) 12:00 - 12:45
+     2) 12:50 - 13:35
+
+*IV*  1) 13:45 - 14:30
+     2) 14:35 - 15:20
+
+*V*   1) 15:30 - 16:15
+     2) 16:20 - 17:05
+
+*VI*  1) 17:15 - 18:00
+     2) 18:05 - 18:50
+
+*VII* 1) 19:00 - 19:45
+     2) 19:50 - 20:35
+'''
+
+senior_timetable = '''
+*I*    1) 08:00 - 08:45
+     2) 08:50 - 09:35
+
+*II*   1) 09:45 - 10:30
+     2) 10:35 - 11:20
+     
+*III*  1) 11:30 - 12:15
+     2) 12:20 - 13:05
+*Перерыв 40 минут*
+*IV*  1) 13:45 - 14:30
+     2) 14:35 - 15:20
+
+*V*   1) 15:30 - 16:15
+     2) 16:20 - 17:05
+
+*VI*  1) 17:15 - 18:00
+     2) 18:05 - 18:50
+
+*VII* 1) 19:00 - 19:45
+     2) 19:50 - 20:35
+'''
+
 
 def format_schedule_group(pairs: dict, date: datetime.date, group_id) -> str:
     """Make schedule in str, ready to send end user"""
@@ -146,15 +202,8 @@ def hello(message):
 
 @bot.message_handler(content_types=['text'])
 def text_handler(message):
-    groups = schedule_db.get_groups()
 
-    text = schedule_db.get_groups(message.text)
-    keyboart = telebot.types.ReplyKeyboardMarkup()
-    stext = message.text
-    l = ('a', 'b', 'c')
-    keyboart.row('hehe')
-    mk = telebot.types.ForceReply(selective=False)
-    bot.send_message(message.chat.id, 'test kb', reply_markup=mk)
+    bot.send_message(message.chat.id, senior_timetable, parse_mode='MARKDOWN')
 
 if __name__ == '__main__':
     # set locale to send weekdays in RU format
