@@ -7,15 +7,15 @@ localbase = LOCALBASE
 
 class User(Model):
     """this model contain user data"""
-    last_action = DateTimeField(null=True)
-    news = IntegerField(null=True)
-    number_of_queries = IntegerField(null=True)
-    timeline_login = CharField(null=True)
-    timeline_pass = CharField(null=True)
-    uid = CharField(unique=True)
     state = IntegerField(default=0)
     state_data = CharField(null=True)
-    subscription = CharField(null=True)
+    sub_news = IntegerField(default=0)
+    sub_schedule = CharField(null=True)
+    timeline_login = CharField(null=True)
+    user_id = IntegerField(null=False, primary_key=True)
+    last_action = DateField(null=True)
+    number_of_queries = IntegerField(default=0)
+
 
     class Meta:
         database = localbase

@@ -3,12 +3,9 @@ import config
 import flask
 import schedule_db
 import locale
-from time import time
-from peewee import *
-import os
+import state
 import datetime
-from pprint import pprint
-from models import *
+import user
 
 app = flask.Flask(__name__)
 
@@ -135,14 +132,14 @@ def get_group(name=None, group_id=None) -> list:
 def hello(message):
     """add user into base"""
     # todo create user, and set his state on 'imagine value'
-    # User.get_or_create()
+    user.create_user(message.chat.id)
     start_board = telebot.types.ReplyKeyboardMarkup()
-    start_board.row('Оформить подписку на расписание')
-    start_board.row('Найти расписание')
+    start_board.row('Подписаться на расписание')
+    start_board.row('Подписаться на новости')
     start_board.row('Зайти в timeline')
     start_board.row('В меню')
     bot.send_message(message.chat.id,
-                     'Hello nigga [О боте](telegra.ph/RGPPU-informer-bot-05-11)',
+                     '*Hello nigga* [О боте](telegra.ph/RGPPU-informer-bot-05-11)',
                      parse_mode='MARKDOWN',
                      reply_markup=start_board)
 
@@ -154,18 +151,14 @@ def text_handler(message):
     text = schedule_db.get_groups(message.text)
     keyboart = telebot.types.ReplyKeyboardMarkup()
     stext = message.text
-    for i in range(15, 22):
-        msg = schedule_db.schedule_teacher_query(stext,
-                                                 '05.{0}.17'.format(i))
-        bot.send_message(message.chat.id,
-                         format_schedule_teacher(msg, datetime.date(17, 5, i), message.text),
-                         reply_markup=telebot.types.ReplyKeyboardRemove(),
-                         parse_mode='MARKDOWN')
-
+    l = ('a', 'b', 'c')
+    keyboart.row('hehe')
+    mk = telebot.types.ForceReply(selective=False)
+    bot.send_message(message.chat.id, 'test kb', reply_markup=mk)
 
 if __name__ == '__main__':
     # set locale to send weekdays in RU format
     locale.setlocale(locale.LC_ALL, ('RU', 'UTF8'))
-    print('run')
+    print('run bot')
     bot.polling(none_stop=True)
 
