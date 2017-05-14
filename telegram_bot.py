@@ -1,11 +1,11 @@
+import schedule_db
+import state
 import telebot
 import config
 import flask
-import schedule_db
 import locale
-import state
 import datetime
-import user
+import end_user
 
 app = flask.Flask(__name__)
 
@@ -39,6 +39,8 @@ important_links = '''
 [Электронная библиотека](http://umkd.rsvpu.ru) - Скачайте нужное вам методическое пособие
 
 [Мои документы](http://www.rsvpu.ru/moi-dokumenty/) - Закажи любую справку в *одном* месте
+
+[Об университете](http://www.rsvpu.ru/sveden/) - Сведения об образовательной организации
 '''
 
 primary_timetable = '''
@@ -92,9 +94,8 @@ senior_timetable = '''
 
 def format_schedule_group(pairs: dict, date: datetime.date, group_id) -> str:
     """Make schedule in str, ready to send end user"""
-    course = schedule_db.get_groups_course(group_id)
     text = ' {0}. _{1}_\n'.format(weekdays[date.weekday()], date.strftime('%d %B'))
-    first, last = 0, 8
+    last = 8
     for l in reversed(pair_time):
         if len(pairs[l[0]]) != 0:
             last = pair_time.index(l) + 1
@@ -105,11 +106,13 @@ def format_schedule_group(pairs: dict, date: datetime.date, group_id) -> str:
             text += '🎉*Выходной!!!*🎉'
             return text
 
-    for pair in range(first, last):
-        if course in (1, 2) and pair_time[pair][0] == 43200:
-            continue
-        elif course > 2 and pair_time[pair][0] == 41400:
-            continue
+    for pair in range(last):
+        if len(pairs[43200]):
+            if pair_time[pair][0] == 41400:
+                continue
+        elif len(pairs[41400]):
+            if pair_time[pair][0] == 43200:
+                continue
 
         text += '{0} '.format(pair_time[pair][1])
         if len(pairs[pair_time[pair][0]]):
@@ -129,7 +132,7 @@ def format_schedule_group(pairs: dict, date: datetime.date, group_id) -> str:
 def format_schedule_teacher(pairs: dict, date: datetime.date, teacher_id) -> str:
     """Make schedule in str, ready to send end user"""
     text = ' {0}. _{1}_\n'.format(weekdays[date.weekday()], date.strftime('%d %B'))
-    first, last = 0, 8
+    last = 8
     for l in reversed(pair_time):
         if len(pairs[l[0]]) != 0:
             last = pair_time.index(l) + 1
@@ -140,7 +143,7 @@ def format_schedule_teacher(pairs: dict, date: datetime.date, teacher_id) -> str
             text += '🎉*Выходной!!!*🎉'
             return text
 
-    for pair in range(first, last):
+    for pair in range(last):
         if len(pairs[43200]):
             if pair_time[pair][0] == 41400:
                 continue
@@ -160,12 +163,11 @@ def format_schedule_teacher(pairs: dict, date: datetime.date, teacher_id) -> str
                 else:
                     target_audience = subject['group_name']
 
-                text += '{0} ({1})  *{2}* {3} {4} _{5}_\n'.format(subject['subject'],
-                                                                  subject['type'],
-                                                                  subject['classroom'],
-                                                                  subject['teacher'],
-                                                                  target_audience,
-                                                                  str(subject['note']) if subject['note'] else '')
+                text += '{0} ({1})  *{2}* {3} {4} \n'.format(subject['subject'],
+                                                             subject['type'],
+                                                             subject['classroom'],
+                                                             target_audience,
+                                                             str(subject['note']) if subject['note'] else '')
         else:
             text += ' --- \n'
             pass
@@ -184,11 +186,17 @@ def get_group(name=None, group_id=None) -> list:
 # here start bot's logic
 
 
+@bot.inline_handler(func=lambda query: len(query.query)>0)
+def some_action(query):
+    pass
+
+
 @bot.message_handler(commands=['start'])
 def hello(message):
-    """add user into base"""
-    # todo create user, and set his state on 'imagine value'
-    user.create_user(message.chat.id)
+    """add user_of_bot into base"""
+    # todo create user_of_bot, and set his state on 'imagine value'
+    user = end_user.EndUser(message.chat.id)
+    user.set_state(state.states['StartMenu'])
     start_board = telebot.types.ReplyKeyboardMarkup()
     start_board.row('Подписаться на расписание')
     start_board.row('Подписаться на новости')
@@ -200,10 +208,98 @@ def hello(message):
                      reply_markup=start_board)
 
 
+@bot.message_handler(func=lambda msg: end_user.EndUser(msg.chat.id).get_state() == state.states['StartMenu'], content_types=['text'])
+def main_menu(message):
+    """
+    Start menu Handler
+    """
+    user = end_user.EndUser(message.chat.id)
+    if message.text == 'Подписаться на расписание':
+        user.set_state(state.states['Set_sub_schedule'])
+        sub_keyboard = telebot.types.ReplyKeyboardMarkup()
+        sub_keyboard.row('Группа')
+        sub_keyboard.row('Преподаватель')
+        bot.send_message(message.chat.id, 'Выберите необходимый вам тип расписания: ', reply_markup=sub_keyboard)
+    elif message.text == 'Подписаться на новости':
+        pass
+    elif message.text == 'Зайти в timeline':
+        bot.send_message(message.chat.id, '3')
+    elif message.text == 'В меню':
+        bot.send_message(message.chat.id, '4')
+    else:
+        bot.send_message(message.chat.id, 'Че ты базаришь, я не понимаю!')
+
+
+@bot.message_handler(func=lambda msg: end_user.EndUser(msg.chat.id).get_state() == state.states['Set_sub_schedule'], content_types=['text'])
+def sub_menu(message):
+    """
+    Sub schedule Handler
+    """
+    user = end_user.EndUser(message.chat.id)
+    if message.text == 'Группа':
+        user.set_state_data({"type": end_user.ScheduleType.Group})
+        bot.send_message(message.chat.id,
+                         "Введите нужную вам группу, я попробую её найти.",
+                         reply_markup=telebot.types.ReplyKeyboardRemove())
+    elif message.text == 'Преподаватель':
+        user.set_state_data({"type": end_user.ScheduleType.Teacher})
+        bot.send_message(message.chat.id,
+                         "Введите имя преподавателя, я попробую найти.",
+                         reply_markup=telebot.types.ReplyKeyboardRemove())
+    elif 'type' in user.get_state_data().keys():
+        state_data = user.get_state_data()
+        if state_data['type'] == end_user.ScheduleType.Teacher:
+            teachers = schedule_db.get_teachers(message.text)
+            if len(teachers):
+                if len(teachers) == 1:
+                    user.set_sub_schedule(end_user.ScheduleType.Group, teachers[0]['group_id'])
+                    user.set_state(state.states['Menu'])
+                    bot.send_message(message.chat.id,
+                                     "Поздравляю! Вы подписаны на группу {0}🎉".format(teachers[0]['group_name']))
+                if 1 < len(teachers) <= 25:
+                    for teach in teachers:
+                        teachers_kb = telebot.types.ReplyKeyboardMarkup()
+                        teachers_kb.row(teach['fullname'])
+                else:
+                    pass
+            else:
+                bot.send_message(message.chat.id, 'Я ничего не нашел, попробуйте ввести иначе.')
+        elif state_data['type'] == end_user.ScheduleType.Group:
+            groups = schedule_db.get_groups(message.text)
+            if len(groups):
+                if len(groups) == 1:
+                    user.set_sub_schedule(end_user.ScheduleType.Group, groups[0]['group_id'])
+                    user.set_state(state.states['Menu'])
+                    bot.send_message(message.chat.id, "Поздравляю! Вы подписаны на группу {0}🎉".format(groups[0]['group_name']))
+                elif 1 < len(groups) <= 15:
+                    groups_kb = telebot.types.ReplyKeyboardMarkup()
+                    print(groups)
+                    for gr in groups:
+                        groups_kb.row(gr['group_name'])
+                    bot.send_message(message.chat.id,
+                                     "Выберите из данного списка нужную вам группу, или введите заного, если я не нашел нужную вам группу.",
+                                     reply_markup=groups_kb)
+                else:
+                    bot.send_message(message.chat.id,
+                                     "Результат поиска получился слишком большой, попробуйте ввести запрос конктретнее",
+                                     reply_markup=telebot.types.ReplyKeyboardRemove())
+            else:
+                bot.send_message(message.chat.id, 'Я ничего не нашел, попробуйте ввести иначе.')
+            pass
+    else:
+        bot.send_message(message.chat.id, 'Я такого не ожидал, выберите пожалуйста пункт из списка')
+
+
+@bot.message_handler(func=lambda msg: end_user.EndUser(msg.chat.id).get_state() == state.states['Menu'], content_types=['text'])
+def sub_menu(message):
+    """
+    Sub schedule Handler
+    """
+
 @bot.message_handler(content_types=['text'])
 def text_handler(message):
 
-    bot.send_message(message.chat.id, senior_timetable, parse_mode='MARKDOWN')
+    bot.send_message(message.chat.id, important_links, parse_mode='MARKDOWN')
 
 if __name__ == '__main__':
     # set locale to send weekdays in RU format

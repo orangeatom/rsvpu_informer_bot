@@ -108,7 +108,7 @@ def get_groups(group_substr=None, id=None, form_of_education=__db_value_form_of_
             gr_part1, gr_part2 = gr['group_name'].split('-')
             if gr_part1.lower() in group_substr.lower() \
                     and gr_part2.lower() in group_substr.lower() \
-                    and len(group_substr) <= len(gr['group_name'])+3:
+                    and len(group_substr) <= len(gr['group_name']):
                 result.append(gr)
             elif group_substr.lower() in gr_part1.lower() and len(group_substr) <= len(gr_part1):
                 result.append(gr)
@@ -124,6 +124,10 @@ def get_teachers(teacher_substr=None):
     if teacher_substr is None:
         return __do_query(sql.select_all_teachers)
     else:
+        teachers = __do_query(sql.select_all_teachers)
+        for t in teachers:
+            if teacher_substr in t['fullname'] or teacher_substr in t['shortname']:
+                pass
         return __do_query(sql.selection_teachers_by_name.format(teacher_substr))
 
 

@@ -16,7 +16,6 @@ class User(Model):
     last_action = DateField(null=True)
     number_of_queries = IntegerField(default=0)
 
-
     class Meta:
         database = localbase
 
