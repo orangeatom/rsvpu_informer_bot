@@ -12,6 +12,7 @@ class User(Model):
     sub_news = IntegerField(default=0)
     sub_schedule = CharField(null=True)
     timeline_login = CharField(null=True)
+    chat_id = IntegerField()
     user_id = IntegerField(null=False, primary_key=True)
     last_action = DateField(null=True)
     number_of_queries = IntegerField(default=0)

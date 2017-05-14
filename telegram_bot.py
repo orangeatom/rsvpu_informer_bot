@@ -303,14 +303,30 @@ def some_action(query):
     pass
 
 
-@bot.message_handler(func=lambda msg: end_user.EndUser(msg.chat.id).get_state() == state.states['StartMenu'],
+@bot.message_handler(commands=['start'])
+def hello(message):
+    """add user_of_bot into base"""
+    user = end_user.EndUser(message)
+    user.set_state(state.states['StartMenu'])
+    start_board = telebot.types.ReplyKeyboardMarkup()
+    start_board.row('Подписаться на расписание')
+    start_board.row('Подписаться на новости')
+    start_board.row('Зайти в timeline')
+    start_board.row('В меню')
+    bot.send_message(message.chat.id,
+                     '*Hello nigga* [О боте](telegra.ph/RGPPU-informer-bot-05-11)',
+                     parse_mode='MARKDOWN',
+                     reply_markup=start_board)
+
+
+@bot.message_handler(func=lambda msg: end_user.EndUser(msg).get_state() == state.states['StartMenu'],
                      content_types=['text'])
 def start_menu(message):
     """
     Start menu Handler
     """
     # todo
-    user = end_user.EndUser(message.chat.id)
+    user = end_user.EndUser(message)
     if message.text == 'Подписаться на расписание':
         user.set_state(state.states['Set_sub_schedule'])
         sub_keyboard = telebot.types.ReplyKeyboardMarkup()
@@ -330,13 +346,13 @@ def start_menu(message):
         bot.send_message(message.chat.id, 'Че ты базаришь, я не понимаю!')
 
 
-@bot.message_handler(func=lambda msg: end_user.EndUser(msg.chat.id).get_state() == state.states['Set_sub_schedule'],
+@bot.message_handler(func=lambda msg: end_user.EndUser(msg).get_state() == state.states['Set_sub_schedule'],
                      content_types=['text'])
 def sub_menu(message):
     """
     Sub schedule Handler
     """
-    user = end_user.EndUser(message.chat.id)
+    user = end_user.EndUser(message)
     if message.text == 'Группа':
         user.set_state_data({"type": end_user.ScheduleType.Group})
         bot.send_message(message.chat.id,
@@ -402,13 +418,13 @@ def sub_menu(message):
         bot.send_message(message.chat.id, 'Я такого не ожидал, выберите пожалуйста пункт из списка')
 
 
-@bot.message_handler(func=lambda msg: end_user.EndUser(msg.chat.id).get_state() == state.states['Menu'],
+@bot.message_handler(func=lambda msg: end_user.EndUser(msg).get_state() == state.states['Menu'],
                      content_types=['text'])
 def main_menu(message):
     """
     Main menu
     """
-    user = end_user.EndUser(message.chat.id)
+    user = end_user.EndUser(message)
     if message.text == TODAY:
         text = get_self_schedule(user, schedule_db.Days.today())
         bot.send_message(message.chat.id, text, parse_mode='MARKDOWN')
@@ -453,10 +469,10 @@ def main_menu(message):
         # search schedule for all
 
 
-@bot.message_handler(func=lambda msg: end_user.EndUser(msg.chat.id).get_state() == state.states['Settings'],
+@bot.message_handler(func=lambda msg: end_user.EndUser(msg).get_state() == state.states['Settings'],
                      content_types=['text'])
 def setting(message):
-    user = end_user.EndUser(message.chat.id)
+    user = end_user.EndUser(message)
     if message.text == SCHEDULE_SUB:
         bot.send_message(user.chat_id, 'Выберите необходимый вам тип расписания', reply_markup=sub_schedule_kb(user))
     elif (message.text == ON_NEWS or message.text == OFF_NEWS):
@@ -477,9 +493,9 @@ def setting(message):
 
 
 @bot.message_handler(content_types=['text'],
-                     func=lambda msg: end_user.EndUser(msg.chat.id).get_state() == state.states['Get_self_schedule_date'])
+                     func=lambda msg: end_user.EndUser(msg).get_state() == state.states['Get_self_schedule_date'])
 def self_date_schedule(message):
-    user = end_user.EndUser(message.chat.id)
+    user = end_user.EndUser(message)
     if message.text != 'Отмена':
         try:
             try:
@@ -499,10 +515,10 @@ def self_date_schedule(message):
         bot.send_message(message.chat.id, 'Открываю меню', reply_markup=menu_kb(user))
 
 
-@bot.message_handler(func=lambda msg: end_user.EndUser(msg.chat.id).get_state() == state.states['Get_timetable'],
+@bot.message_handler(func=lambda msg: end_user.EndUser(msg).get_state() == state.states['Get_timetable'],
                      content_types=['text'])
 def timetable(message):
-    user = end_user.EndUser(message.chat.id)
+    user = end_user.EndUser(message)
     if message.text == PRIMARY_TIMETABLE:
         bot.send_message(message.chat.id, primary_timetable, reply_markup=menu_kb(user), parse_mode='MARKDOWN')
     elif message.text == SENIOR_TIMETABLE:
@@ -513,10 +529,10 @@ def timetable(message):
         bot.send_message(message.chat.id, 'Неизвестная команда')
 
 
-@bot.message_handler(func=lambda msg: end_user.EndUser(msg.chat.id).get_state() == state.states['Get_academic_buildings'],
+@bot.message_handler(func=lambda msg: end_user.EndUser(msg).get_state() == state.states['Get_academic_buildings'],
                      content_types=['text'])
 def get_academic_buildings(message):
-    user = end_user.EndUser(message.chat.id)
+    user = end_user.EndUser(message)
     print(message)
     if message.text in academic_buildings.keys():
         text = academic_buildings[message.text]
@@ -533,21 +549,6 @@ def text_handler(message):
                                       'подписка сохранится, и доложи об этом автору, пусть чистит за собой косяки',
                      parse_mode='MARKDOWN')
 
-
-@bot.message_handler(commands=['start'])
-def hello(message):
-    """add user_of_bot into base"""
-    user = end_user.EndUser(message.chat.id)
-    user.set_state(state.states['StartMenu'])
-    start_board = telebot.types.ReplyKeyboardMarkup()
-    start_board.row('Подписаться на расписание')
-    start_board.row('Подписаться на новости')
-    start_board.row('Зайти в timeline')
-    start_board.row('В меню')
-    bot.send_message(message.chat.id,
-                     '*Hello nigga* [О боте](telegra.ph/RGPPU-informer-bot-05-11)',
-                     parse_mode='MARKDOWN',
-                     reply_markup=start_board)
 
 if __name__ == '__main__':
     # set locale to send weekdays in RU format
