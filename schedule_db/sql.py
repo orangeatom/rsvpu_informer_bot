@@ -230,27 +230,6 @@ ORDER BY FIO
 '''
 
 
-selection_teachers_by_name = '''
-SELECT DISTINCT Prep.[Person] as teacher_id,
-(CASE
-WHEN Prep.[Note] is Null
-THEN Prep.[FIO]
-ELSE
-case
-WHEN Prep.[Note] is not Null
-Then Prep.[Note]
-end
-END) as 'fullname', FIO as 'shortname'
-
-FROM [ContentOfSchedule] Rasp, [Lecturer] Prep, [Schedule] S
-where Rasp.[Lecturer]=Prep.[OID] 
-        and Rasp.Schedule=S.OID 
-        and S.[Status]='1' 
-        and (lower(fullname) like '%{0}%
-ORDER BY FIO 
-'''
-
-
 select_classrooms = '''
 SELECT DISTINCT Cast(Bild.[Name] AS INT) as Build, Aud.[Name], Aud.OID as classroom_id,
 

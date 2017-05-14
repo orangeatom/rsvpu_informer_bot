@@ -53,6 +53,13 @@ class Days:
         """return datetime object with today"""
         return datetime.date.today()
 
+    @classmethod
+    def week(self) -> list:
+        dates = []
+        for day in range(8):
+            dates.append(datetime.date.today() + datetime.timedelta(days=day))
+        return dates
+
 
 def __do_query(query) -> list:
     cursor = __connect.cursor(as_dict=True)
@@ -125,10 +132,11 @@ def get_teachers(teacher_substr=None):
         return __do_query(sql.select_all_teachers)
     else:
         teachers = __do_query(sql.select_all_teachers)
+        found_teachers = []
         for t in teachers:
-            if teacher_substr in t['fullname'] or teacher_substr in t['shortname']:
-                pass
-        return __do_query(sql.selection_teachers_by_name.format(teacher_substr))
+            if teacher_substr.lower() in t['fullname'].lower() or teacher_substr in t['shortname'].lower():
+                found_teachers.append(t)
+        return found_teachers
 
 
 def get_classrooms(group_substr=None):

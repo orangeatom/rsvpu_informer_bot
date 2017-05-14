@@ -1,6 +1,4 @@
 # todo
-from telebot import types
-
 class BaseState:
     """
     Base State
@@ -38,7 +36,11 @@ class Menu:
 
 
 states = {'StartMenu': 0,
-          'Menu': 1,
-          'Set_sub_schedule': 2,
-          'Set_sub_news': 3,
-          'timeline_login': 4}
+          'Menu': 1,  # complete
+          'Set_sub_schedule': 2,  # complete
+          'Settings': 3,
+          'Timeline_login': 4,
+          'Get_self_schedule_date': 5,
+          'Get_timetable': 6,  # complete
+          'Get_search_schedule': 7,
+          'Get_academic_buildings': 8}

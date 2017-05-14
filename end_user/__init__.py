@@ -4,8 +4,6 @@ from models import *
 import json
 
 
-
-
 class ScheduleType:
     Teacher = 0
     Group = 1
@@ -14,13 +12,15 @@ class ScheduleType:
 class EndUser:
     def __init__(self, chat_id):
         self.chat_id = chat_id
-        self.user, self.new = User.get_or_create()
+        self.user, self.new = User.get_or_create(user_id=chat_id)
 
     def __increment_query(self):
         self.user.number_of_queries = self.user.number_of_queries+1
 
     def __update_last_action(self):
         self.user.last_action = datetime.datetime.now()
+
+    # logging as action in db
 
     def set_state_data(self, data, **kwargs):
         self.user.state_data = json.dumps(data)
@@ -34,17 +34,19 @@ class EndUser:
         self.__update_last_action()
         self.user.save()
 
-    def get_user(self):
-        return User.get(user_id=self.chat_id)
-
-    def get_state(self):
-        return self.user.state
-
     def set_state(self, state):
         self.user.state = state
         self.__increment_query()
         self.__update_last_action()
         self.user.save()
+
+    # without logging
+
+    def get_user(self):
+        return User.get(user_id=self.chat_id)
+
+    def get_state(self):
+        return self.user.state
 
     def set_timeline(self, login):
         self.user.timeline_login = login
@@ -71,7 +73,10 @@ class EndUser:
         self.user.save()
 
     def get_sub_schedule(self) -> dict:
-        return json.loads(self.user.sub_schedule)
+        try:
+            return json.loads(self.user.sub_schedule)
+        except:
+            return None
 
     def get_state_data(self) -> dict:
         if self.user.state_data:
