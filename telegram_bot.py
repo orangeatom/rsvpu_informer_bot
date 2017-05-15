@@ -297,10 +297,35 @@ def get_self_schedule(user, day) -> str:
 # here start bot's logic
 
 
-@bot.inline_handler(func=lambda query: len(query.query) > 0)
+@bot.inline_handler(func=lambda query: True)
 def some_action(query):
-    print(query)
-    pass
+    user = end_user.EndUser(query=query)
+    schedule_type = user.get_sub_schedule()['type']
+    schedule_id = user.get_sub_schedule()['schedule_id']
+    day = schedule_db.Days.today()
+    if schedule_type == end_user.ScheduleType.Teacher:
+        pairs = schedule_db.schedule_teacher_query(schedule_id, day)
+        text = format_schedule_group(pairs, day, schedule_id)
+        print('1')
+        print(schedule_db.get_teachers(id=1442))
+        answer = telebot.types.InlineQueryResultArticle(id='1',
+                                                        title='Сегодня',
+                                                        description=schedule_db.get_teachers(id=schedule_id)[0]['shortname'],
+                                                        input_message_content=telebot.types.InputTextMessageContent(
+                                                            message_text=text, parse_mode='MARKDOWN'))
+        bot.answer_inline_query(query.id, [answer])
+    elif schedule_type == end_user.ScheduleType.Group:
+        pairs = schedule_db.schedule_group_query(schedule_id, day)
+        text = format_schedule_group(pairs, day, schedule_id)
+        print()
+        answer = telebot.types.InlineQueryResultArticle(id='1',
+                                                        title='Сегодня',
+                                                        description=schedule_db.get_groups(id=schedule_id)[0]['group_name'],
+                                                        input_message_content=telebot.types.InputTextMessageContent(
+                                                            message_text=text, parse_mode='MARKDOWN'))
+        bot.answer_inline_query(query.id, [answer])
+    else:
+        print('asds')
 
 
 @bot.message_handler(commands=['start'])

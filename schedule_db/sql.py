@@ -180,7 +180,7 @@ lecturers_stream = '''
 
 
 select_groups = '''
-select distinct gr.Name as group_name,gr.group_id
+select distinct gr.Name as group_name, gr.group_id
 from
   (
   SELECT Distinct gr.OID as group_id, gr.Name
@@ -225,7 +225,7 @@ end
 END) as 'fullname', FIO as 'shortname'
 
 FROM [ContentOfSchedule] Rasp, [Lecturer] Prep, [Schedule] S
-where Rasp.[Lecturer]=Prep.[OID] and Rasp.Schedule=S.OID and S.[Status]='1'
+where Rasp.[Lecturer]=Prep.[OID] and Rasp.Schedule=S.OID and S.[Status]='0'
 ORDER BY FIO
 '''
 

@@ -122,21 +122,28 @@ def get_groups(group_substr=None, id=None, form_of_education=__db_value_form_of_
             elif group_substr.lower() in gr_part2.lower() and len(group_substr) <= len(gr_part2):
                 result.append(gr)
     elif id:
-        result = [gr for gr in groups if str(gr["group_id"]) == id]
+        result = [gr for gr in groups if gr["group_id"] == id]
     return result
 
 
-def get_teachers(teacher_substr=None):
+def get_teachers(teacher_substr=None, id=None):
     """return all teachers or only the matching with math substr"""
-    if teacher_substr is None:
-        return __do_query(sql.select_all_teachers)
-    else:
+    if teacher_substr:
         teachers = __do_query(sql.select_all_teachers)
         found_teachers = []
         for t in teachers:
-            if teacher_substr.lower() in t['fullname'].lower() or teacher_substr in t['shortname'].lower():
+            if teacher_substr.lower() in t['fullname'].lower():
                 found_teachers.append(t)
         return found_teachers
+    elif id:
+        teachers = __do_query(sql.select_all_teachers)
+        found_teachers = []
+        for t in teachers:
+            if id == t['teacher_id']:
+                found_teachers.append(t)
+        return found_teachers
+    else:
+        return __do_query(sql.select_all_teachers)
 
 
 def get_classrooms(group_substr=None):

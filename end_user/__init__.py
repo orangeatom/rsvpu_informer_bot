@@ -10,10 +10,16 @@ class ScheduleType:
 
 
 class EndUser:
-    def __init__(self, message):
-        self.chat_id = message.chat.id
-        self.user_id = message.from_user.id
-        self.user, self.new = User.get_or_create(user_id=self.user_id, chat_id=self.chat_id)
+    def __init__(self, message=None, query=None):
+        if message:
+            self.chat_id = message.chat.id
+            self.user_id = message.from_user.id
+            self.user, self.new = User.get_or_create(user_id=self.user_id, chat_id=self.chat_id)
+        elif query:
+            self.user_id = query.from_user.id
+            self.user = User.get(user_id=self.user_id)
+        else:
+            raise ValueError
 
     def __increment_query(self):
         self.user.number_of_queries = self.user.number_of_queries+1
