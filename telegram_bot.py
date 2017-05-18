@@ -636,6 +636,21 @@ def search_target(message):
                     pass
                 pass
             elif usr.get_state_data()['type'] == user.ScheduleType.Group:
+                groups = schedule_db.get_groups(message.text)
+                if groups:
+                    if len(groups) == 1:
+                        usr.set_state_data({'type': user.ScheduleType.Group,
+                                            'schedule_id': groups[0]['group_id']})
+                        bot.send_message(usr.chat_id, SELECT_INTERVAL, reply_markup=search_kb(usr))
+                    elif 1 < len(groups) <= 30:
+                        kb = telebot.types.ReplyKeyboardMarkup()
+                        for t in groups:
+                            kb.row(t['group_name'])
+                        bot.send_message(usr.chat_id, 'Выберите необходимого преподавателя из списка', reply_markup=kb)
+                    elif len(groups) > 30:
+                        bot.send_message(usr.chat_id,
+                                         'Результат поиска получил слишком много результатов, попробуйте ввести более конкретное значение')
+
                 print('gr')
     bot.send_message(usr.chat_id, str(usr.get_state_data()['type']))
 
@@ -656,9 +671,17 @@ def search_schedule(message):
     elif message.text == WEEK:
         days = schedule_db.Days.days_from_today(8)
         for d in days:
-            print(d)
+            schedule = get_schedule(usr.get_state_data()['type'],
+                                    usr.get_state_data()['schedule_id'],
+                                    d)
+            bot.send_message(usr.chat_id, schedule, parse_mode='MARKDOWN')
     elif message.text == TWO_WEEK:
-        pass
+        days = schedule_db.Days.days_from_today(15)
+        for d in days:
+            schedule = get_schedule(usr.get_state_data()['type'],
+                                    usr.get_state_data()['schedule_id'],
+                                    d)
+            bot.send_message(usr.chat_id, schedule, parse_mode='MARKDOWN')
     elif message.text == MENU:
         bot.send_message(usr.chat_id, MENU_ENTER, reply_markup=menu_kb(usr))
     else:
