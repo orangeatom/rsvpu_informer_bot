@@ -54,9 +54,9 @@ class Days:
         return datetime.date.today()
 
     @classmethod
-    def week(self) -> list:
+    def days_from_today(self, days: int) -> list:
         dates = []
-        for day in range(8):
+        for day in range(days):
             dates.append(datetime.date.today() + datetime.timedelta(days=day))
         return dates
 

@@ -122,18 +122,16 @@ DECLARE @aud int = {id}
 
         SELECT Distinct 
             Rasp.[StartTime] as start_time, 
-            rasp.[group] as GroupName, 
-            Prep.[FIO] as 'Prepod', 
-            Prep.[Person] as 'Prepod_id',
-            Disp.[Name] as 'Disciplina', 
-            Vid.[Abbr] as 'Vid', 
-            Rasp.[Note], 
-            Aud.[Name] as 'Aud', 
+            rasp.[group] as group_name, 
+            Prep.[FIO] as 'teacher_name', 
+            Disp.[Name] as 'subject', 
+            Vid.[Abbr] as 'pair_type', 
+            Rasp.[Note] as note, 
+            Aud.[Name] as 'classroom_name', 
             Aud.[OID] as 'Aud_id', 
             Para.[Number] as 'Para', 
-            rasp.[stream] as Stream, 
-            rasp.[subgroup] as Subgroup, 
-            SGr.[Name] as SubGroupName
+            rasp.[stream] as stream, 
+            SGr.[Name] as subgroup_name
                 FROM 
                 
                 (SELECT [ContentOfSchedule].[StartOn] AS sd

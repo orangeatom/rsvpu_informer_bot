@@ -42,5 +42,6 @@ states = {'StartMenu': 0,
           'Timeline_login': 4,
           'Get_self_schedule_date': 5,
           'Get_timetable': 6,  # complete
-          'Get_search_schedule': 7,
+          'Get_search_schedule_step1': 7,
+          'Get_search_schedule_step2': 9,
           'Get_academic_buildings': 8}

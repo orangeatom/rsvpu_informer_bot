@@ -1,23 +1,24 @@
 """logic of work with User"""
 import datetime
-from models import *
+import models
 import json
 
 
 class ScheduleType:
     Teacher = 0
     Group = 1
+    Classroom = 2
 
 
-class EndUser:
+class User:
     def __init__(self, message=None, query=None):
         if message:
             self.chat_id = message.chat.id
             self.user_id = message.from_user.id
-            self.user, self.new = User.get_or_create(user_id=self.user_id, chat_id=self.chat_id)
+            self.user, self.new = models.User.get_or_create(user_id=self.user_id, chat_id=self.chat_id)
         elif query:
             self.user_id = query.from_user.id
-            self.user = User.get(user_id=self.user_id)
+            self.user = models.User.get(user_id=self.user_id)
         else:
             raise ValueError
 
@@ -36,7 +37,7 @@ class EndUser:
         self.user.save()
 
     def create_user(self, user_id):
-        user = User.get_or_create(user_id=user_id)
+        user = models.User.get_or_create(user_id=user_id)
         self.__increment_query()
         self.__update_last_action()
         self.user.save()
@@ -50,7 +51,7 @@ class EndUser:
     # without logging
 
     def get_user(self):
-        return User.get(user_id=self.chat_id)
+        return models.User.get(user_id=self.chat_id)
 
     def get_state(self):
         return self.user.state
