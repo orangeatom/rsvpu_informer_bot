@@ -97,11 +97,15 @@ def schedule_teacher_query(teacher_id: int, day) -> dict:
         print('error')
 
 
-def schedule_classroom_query(classroom_id, day) -> list:
+def schedule_classroom_query(classroom_id, day) -> dict:
     # todo change sql query
     # todo make out in tuple
     try:
-        return __do_query(sql.schedule_classroom.format(date=day, id=classroom_id))
+        pairs = __do_query(sql.schedule_classroom.format(date=day, id=classroom_id))
+        schedule = {}
+        for pair in pair_time:
+            schedule[pair] = tuple(s for s in pairs if s['start_time'] == pair)
+        return schedule
     except:
         print('error')
 
@@ -146,24 +150,14 @@ def get_teachers(teacher_substr=None, id=None):
         return __do_query(sql.select_all_teachers)
 
 
-def get_classrooms(group_substr=None):
+def get_classrooms(classroom_substr=None):
     """return all classrooms or only the matching with math substr"""
-    cursor = __connect.cursor()
-    if group_substr is None:
-        cursor.execute("select Name from [Auditorium]")
-    else:
-        cursor.execute("select Name from [Auditorium] where lower(Name) like '%{0}%'".format(group_substr))
-    raw = cursor.fetchone()
-    classrooms = [raw[0]]
-    while raw:
-        raw = cursor.fetchone()
-        if raw:
-            classrooms.append(raw[0])
-    return classrooms
-
-
-def get_teachers_of_subjects():
-    """this function return teacher/teachers whose teach this subject"""
+    classrooms = __do_query(sql.select_classrooms)
+    if classroom_substr:
+        for classroom in classrooms:
+            if classroom_substr == classroom['classroom_name']:
+                return classroom
+    return None
 
 
 def lecturers_stream(stream_id: int) -> list:
@@ -177,3 +171,7 @@ def get_groups_course(group_id):
     """return course of this group"""
     course = __do_query(sql.groups_course.format(group_id))
     return course[0]['Course']
+
+
+def get_teachers_of_subjects():
+    """this function return teacher/teachers whose teach this subject"""

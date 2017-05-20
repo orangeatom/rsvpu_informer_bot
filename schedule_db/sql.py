@@ -125,7 +125,7 @@ DECLARE @aud int = {id}
             rasp.[group] as group_name, 
             Prep.[FIO] as 'teacher_name', 
             Disp.[Name] as 'subject', 
-            Vid.[Abbr] as 'pair_type', 
+            Vid.[Abbr] as 'type', 
             Rasp.[Note] as note, 
             Aud.[Name] as 'classroom_name', 
             Aud.[OID] as 'Aud_id', 
@@ -229,31 +229,13 @@ ORDER BY FIO
 
 
 select_classrooms = '''
-SELECT DISTINCT Cast(Bild.[Name] AS INT) as Build, Aud.[Name], Aud.OID as classroom_id,
 
-(CASE
-WHEN Bild.[Name] = '0'
-THEN 'Главный учебный корпус'
-ELSE
-case
-WHEN Bild.[Name] = '100'
-Then 'Дополнительно'
-ELSE
-case
-WHEN Bild.[Name] < '99'
-Then 'Учебный корпус №' + Bild.[Name]
-END
-end
-END) as Korpus
+SELECT DISTINCT  Aud.[Name] as classroom_name, Aud.OID as classroom_id
 
 FROM [Auditorium] Aud
 
 Left JOIN Building Bild
 ON Aud.Building = Bild.OID
-
-Group by Bild.[Name], Aud.[Name], Aud.OID
-
-ORDER BY Cast(Bild.[Name] AS INT), Aud.[Name]
 '''
 
 

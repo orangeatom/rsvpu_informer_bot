@@ -132,6 +132,7 @@ SCHEDULE_GROUP = 'Группа 👥'
 SCHEDULE_CLASSROOM = 'Аудитория 🔢'
 MENU_ENTER = 'Открываю меню'
 SELECT_INTERVAL = 'Выберите нобходимый промежуток.'
+SPLIT_WEEKS = '🖤💜💙💚💛❤️💛💚💙💜🖤'
 
 
 def menu_kb(user)-> telebot.types.ReplyKeyboardMarkup:
@@ -268,7 +269,7 @@ def format_schedule_teacher(pairs: dict, date: datetime.date, teacher_id) -> str
                     stream = schedule_db.lecturers_stream(subject['stream'])
                     target_audience = ', '.join(stream)
                 elif subject['subgroup_name']:
-                    target_audience = subject['subgroup_name']
+                    target_audience = subject['subgroup_name'][:-1] + 'п/г) '
                 else:
                     target_audience = subject['group_name']
 
@@ -277,6 +278,51 @@ def format_schedule_teacher(pairs: dict, date: datetime.date, teacher_id) -> str
                                                              subject['classroom'],
                                                              target_audience,
                                                              str(subject['note']) if subject['note'] else '')
+        else:
+            text += ' --- \n'
+            pass
+    return text
+
+
+def format_schedule_classroom(pairs: dict, date: datetime.date, classroom_id) -> str:
+    text = ' {0}. _{1}_\n'.format(weekdays[date.weekday()], date.strftime('%d %B'))
+    last = 8
+    for l in reversed(pair_time):
+        if len(pairs[l[0]]) != 0:
+            last = pair_time.index(l) + 1
+            if last == 9:
+                last = 8
+            break
+        elif pair_time.index(l) == 0:
+            text += 'Аудитория пустует целый день...'
+            return text
+
+    for pair in range(last):
+        if len(pairs[43200]):
+            if pair_time[pair][0] == 41400:
+                continue
+        elif len(pairs[41400]):
+            if pair_time[pair][0] == 43200:
+                continue
+
+        text += '`{0}` '.format(pair_time[pair][1])
+        if len(pairs[pair_time[pair][0]]):
+            for subject in pairs[pair_time[pair][0]]:
+                target_audience = ''
+                if subject['stream']:
+                    stream = schedule_db.lecturers_stream(subject['stream'])
+                    target_audience = ', '.join(stream)
+                elif subject['subgroup_name']:
+                    target_audience = subject['subgroup_name'][:-1] + ' п/г) '
+                else:
+                    target_audience = subject['group_name']
+
+                text += '{0} ({1})  *{2}* {3} *{4}* *{5}*\n'.format(subject['subject'],
+                                                                    subject['type'],
+                                                                    subject['classroom_name'],
+                                                                    subject['teacher_name'],
+                                                                    target_audience,
+                                                                    str(subject['note']) if subject['note'] else '')
         else:
             text += ' --- \n'
             pass
@@ -320,7 +366,10 @@ def get_schedule(type, schedule_id, day):
         pairs = schedule_db.schedule_group_query(schedule_id, day)
         text = format_schedule_group(pairs, day, schedule_id)
     elif type == user.ScheduleType.Classroom:
-        pass
+        pairs = schedule_db.schedule_classroom_query(schedule_id, day)
+        text = format_schedule_classroom(pairs, day, schedule_id)
+    else:
+        text = 'я тут что то запутался, походу вы меня сломали'
     return text
 # here start bot's logic
 
@@ -394,7 +443,7 @@ def start_menu(message):
         bot.send_message(usr.chat_id, 'Открываю меню',
                          reply_markup=menu_kb(usr))
     else:
-        bot.send_message(usr.chat_id, 'Че ты базаришь, я не понимаю!')
+        bot.send_message(usr.chat_id, 'Я не знаю такой команды!')
 
 
 @bot.message_handler(func=lambda msg: user.User(msg).get_state() == state.states['Set_sub_schedule'],
@@ -487,13 +536,15 @@ def main_menu(message):
     elif message.text == WEEK:
         schedule_sub = usr.get_sub_schedule()
         days = schedule_db.Days.days_from_today(8)
+        final_text = ''
         for day in days:
             text = get_self_schedule(usr, day)
             if text == SUB_ERROR:
                 bot.send_message(usr.chat_id, text, parse_mode='MARKDOWN', disable_notification=True)
                 break
             else:
-                bot.send_message(usr.chat_id, text, parse_mode='MARKDOWN', disable_notification=True)
+                final_text += get_self_schedule(usr, day) + '\n\n'
+        bot.send_message(usr.chat_id, final_text, parse_mode='MARKDOWN', disable_notification=True)
     elif message.text == SCHEDULE_GROUP:
         usr.set_state_data({'type': user.ScheduleType.Group})
         usr.set_state(state.states['Get_search_schedule_step1'])
@@ -507,7 +558,7 @@ def main_menu(message):
     elif message.text == SCHEDULE_CLASSROOM:
         usr.set_state_data({'type': user.ScheduleType.Classroom})
         usr.set_state(state.states['Get_search_schedule_step1'])
-        bot.send_message(usr.chat_id, 'Введите необходимую аудиторию',
+        bot.send_message(usr.chat_id, 'Введите необходимую аудиторию в формате X-XXX',
                          reply_markup=telebot.types.ReplyKeyboardRemove())
 
     elif message.text == DATE:
@@ -614,8 +665,16 @@ def search_target(message):
     if usr.get_state_data().keys():
         if 'type' in usr.get_state_data().keys():
             if usr.get_state_data()['type'] == user.ScheduleType.Classroom:
-                pass
+                classroom = schedule_db.get_classrooms(message.text)
+                print(classroom)
+                if classroom:
+                    usr.set_state_data({'type': user.ScheduleType.Classroom,
+                                        'schedule_id': classroom['classroom_id']})
+                    bot.send_message(usr.chat_id, SELECT_INTERVAL+';', reply_markup=search_kb(usr))
+                else:
+                    bot.send_message(usr.chat_id, 'Я не смог найти такую аудиторию, попробуй ввести еще раз')
                 print('aud')
+
             elif usr.get_state_data()['type'] == user.ScheduleType.Teacher:
                 teachers = schedule_db.get_teachers(message.text)
                 if teachers:
@@ -635,6 +694,7 @@ def search_target(message):
                 else:
                     pass
                 pass
+
             elif usr.get_state_data()['type'] == user.ScheduleType.Group:
                 groups = schedule_db.get_groups(message.text)
                 if groups:
@@ -642,17 +702,16 @@ def search_target(message):
                         usr.set_state_data({'type': user.ScheduleType.Group,
                                             'schedule_id': groups[0]['group_id']})
                         bot.send_message(usr.chat_id, SELECT_INTERVAL, reply_markup=search_kb(usr))
-                    elif 1 < len(groups) <= 30:
+                    elif 1 < len(groups) <= 50:
                         kb = telebot.types.ReplyKeyboardMarkup()
                         for t in groups:
                             kb.row(t['group_name'])
                         bot.send_message(usr.chat_id, 'Выберите необходимого преподавателя из списка', reply_markup=kb)
-                    elif len(groups) > 30:
+                    elif len(groups) > 50:
                         bot.send_message(usr.chat_id,
                                          'Результат поиска получил слишком много результатов, попробуйте ввести более конкретное значение')
 
                 print('gr')
-    bot.send_message(usr.chat_id, str(usr.get_state_data()['type']))
 
 
 @bot.message_handler(func=lambda msg: user.User(msg).get_state() == state.states['Get_search_schedule_step2'])
@@ -670,18 +729,29 @@ def search_schedule(message):
         bot.send_message(usr.chat_id, schedule, parse_mode='MARKDOWN')
     elif message.text == WEEK:
         days = schedule_db.Days.days_from_today(8)
+        text = ''
         for d in days:
             schedule = get_schedule(usr.get_state_data()['type'],
                                     usr.get_state_data()['schedule_id'],
                                     d)
-            bot.send_message(usr.chat_id, schedule, parse_mode='MARKDOWN')
+            if datetime.date.weekday(d) == 6:
+                text += schedule + '\n\n {0}\n'.format(SPLIT_WEEKS)
+            else:
+                text += schedule + '\n\n'
+        bot.send_message(usr.chat_id, text, parse_mode='MARKDOWN')
     elif message.text == TWO_WEEK:
         days = schedule_db.Days.days_from_today(15)
+        text = ''
         for d in days:
             schedule = get_schedule(usr.get_state_data()['type'],
                                     usr.get_state_data()['schedule_id'],
                                     d)
-            bot.send_message(usr.chat_id, schedule, parse_mode='MARKDOWN')
+            text += schedule
+            if datetime.date.weekday(d) == 6:
+                text += '\n\n {0}\n'.format(SPLIT_WEEKS)
+            else:
+                text += '\n\n'
+        bot.send_message(usr.chat_id, text, parse_mode='MARKDOWN')
     elif message.text == MENU:
         bot.send_message(usr.chat_id, MENU_ENTER, reply_markup=menu_kb(usr))
     else:
@@ -717,4 +787,3 @@ if __name__ == '__main__':
     locale.setlocale(locale.LC_ALL, ('RU', 'UTF8'))
     print('run bot')
     bot.polling(none_stop=True)
-
