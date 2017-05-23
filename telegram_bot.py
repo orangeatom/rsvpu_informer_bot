@@ -6,7 +6,10 @@ import flask
 import locale
 import datetime
 import user
+import logging
 from pprint import pprint
+
+
 
 app = flask.Flask(__name__)
 
@@ -132,7 +135,7 @@ SCHEDULE_GROUP = 'Группа 👥'
 SCHEDULE_CLASSROOM = 'Аудитория 🔢'
 MENU_ENTER = 'Открываю меню'
 SELECT_INTERVAL = 'Выберите нобходимый промежуток.'
-SPLIT_WEEKS = '🖤💜💙💚💛❤️💛💚💙💜🖤'
+SPLIT_WEEKS = '🔸🔸🔸🔸🔸🔸🔸🔸🔸🔸🔸🔸🔸'
 
 
 def menu_kb(user)-> telebot.types.ReplyKeyboardMarkup:
@@ -375,7 +378,7 @@ def get_schedule(type, schedule_id, day):
 
 
 @bot.inline_handler(func=lambda query: True)
-def some_action(query):
+def send_schedule(query):
     usr = user.User(query=query)
     schedule_type = usr.get_sub_schedule()['type']
     schedule_id = usr.get_sub_schedule()['schedule_id']
@@ -414,7 +417,7 @@ def hello(message):
     start_board.row('Зайти в Таймлайн')
     start_board.row('В меню')
     bot.send_message(usr.chat_id,
-                     '*Приветственное сообщение!!!* [О боте](telegra.ph/RGPPU-informer-bot-05-11)',
+                     '*Привет, я тестовая версия обновленной версии бота!!!* [О боте](telegra.ph/RGPPU-informer-bot-05-11)',
                      parse_mode='MARKDOWN',
                      reply_markup=start_board)
 
@@ -735,23 +738,35 @@ def search_schedule(message):
                                     usr.get_state_data()['schedule_id'],
                                     d)
             if datetime.date.weekday(d) == 6:
-                text += schedule + '\n\n {0}\n'.format(SPLIT_WEEKS)
+                text += schedule + '\n\n{0}\n'.format(SPLIT_WEEKS)
             else:
                 text += schedule + '\n\n'
         bot.send_message(usr.chat_id, text, parse_mode='MARKDOWN')
     elif message.text == TWO_WEEK:
         days = schedule_db.Days.days_from_today(15)
         text = ''
-        for d in days:
+        for d in days[:-7]:
             schedule = get_schedule(usr.get_state_data()['type'],
                                     usr.get_state_data()['schedule_id'],
                                     d)
             text += schedule
             if datetime.date.weekday(d) == 6:
-                text += '\n\n {0}\n'.format(SPLIT_WEEKS)
+                text += '\n{0}\n'.format(SPLIT_WEEKS)
             else:
                 text += '\n\n'
         bot.send_message(usr.chat_id, text, parse_mode='MARKDOWN')
+        text = ''
+        for d in days[-7:]:
+            schedule = get_schedule(usr.get_state_data()['type'],
+                                    usr.get_state_data()['schedule_id'],
+                                    d)
+            text += schedule
+            if datetime.date.weekday(d) == 6:
+                text += '\n\n{0}\n'.format(SPLIT_WEEKS)
+            else:
+                text += '\n\n'
+        bot.send_message(usr.chat_id, text, parse_mode='MARKDOWN')
+
     elif message.text == MENU:
         bot.send_message(usr.chat_id, MENU_ENTER, reply_markup=menu_kb(usr))
     else:
@@ -782,8 +797,15 @@ def text_handler(message):
                      parse_mode='MARKDOWN')
 
 
+@bot.message_handler(content_types=['text'])
+def old_users(message):
+    pass
+
 if __name__ == '__main__':
     # set locale to send weekdays in RU format
+
     locale.setlocale(locale.LC_ALL, ('RU', 'UTF8'))
+    logger = telebot.logger
+    telebot.logger.setLevel(logging.INFO)
     print('run bot')
     bot.polling(none_stop=True)

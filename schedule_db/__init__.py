@@ -16,16 +16,16 @@ pair_time = (
     62100,
     68400, )
 
-__connect = pymssql.connect(server=config.SCHEDULEDB.server,
-                            password=config.SCHEDULEDB.pwd,
-                            database=config.SCHEDULEDB.db,
-                            user=config.SCHEDULEDB.user)
+_connect = pymssql.connect(server=config.SCHEDULEDB.server,
+                           password=config.SCHEDULEDB.pwd,
+                           database=config.SCHEDULEDB.db,
+                           user=config.SCHEDULEDB.user)
 
-__cursor = __connect.cursor(as_dict=True)
+_cursor = _connect.cursor(as_dict=True)
 
-__db_value_form_of_education = {'full day': '4, 6',
-                                'half day': '5, 6',
-                                'all': '4, 5, 6'}
+_db_value_form_of_education = {'full day': '4, 6',
+                               'half day': '5, 6',
+                               'all': '4, 5, 6'}
 
 
 class DatabaseError(Exception):
@@ -61,18 +61,18 @@ class Days:
         return dates
 
 
-def __do_query(query) -> list:
-    cursor = __connect.cursor(as_dict=True)
+def _do_query(query) -> list:
+    cursor = _connect.cursor(as_dict=True)
     cursor.execute(query)
     return cursor.fetchall()
 
 
 def schedule_group_query(group_id: int, day) -> dict:
     """return schedule_db for entered group and selected day"""
-    group = __do_query(sql.select_group_name.format(id=group_id))
+    group = _do_query(sql.select_group_name.format(id=group_id))
     try:
         if group:  # if database have this group
-            pairs = __do_query(sql.schedule_group.format(date=day, id=group_id))
+            pairs = _do_query(sql.schedule_group.format(date=day, id=group_id))
             schedule = {}
             for pair in pair_time:
                 schedule[pair] = tuple(s for s in pairs if s['start_time'] == pair)
@@ -86,9 +86,9 @@ def schedule_group_query(group_id: int, day) -> dict:
 
 
 def schedule_teacher_query(teacher_id: int, day) -> dict:
-    # todo
+    """return teachers schedule to today"""
     try:
-        pairs = __do_query(sql.schedule_teacher.format(date=day, id=teacher_id))
+        pairs = _do_query(sql.schedule_teacher.format(date=day, id=teacher_id))
         schedule = {}
         for pair in pair_time:
             schedule[pair] = tuple(s for s in pairs if s['start_time'] == pair)
@@ -98,10 +98,9 @@ def schedule_teacher_query(teacher_id: int, day) -> dict:
 
 
 def schedule_classroom_query(classroom_id, day) -> dict:
-    # todo change sql query
-    # todo make out in tuple
+    """return slassrooms schedule to today"""
     try:
-        pairs = __do_query(sql.schedule_classroom.format(date=day, id=classroom_id))
+        pairs = _do_query(sql.schedule_classroom.format(date=day, id=classroom_id))
         schedule = {}
         for pair in pair_time:
             schedule[pair] = tuple(s for s in pairs if s['start_time'] == pair)
@@ -110,9 +109,9 @@ def schedule_classroom_query(classroom_id, day) -> dict:
         print('error')
 
 
-def get_groups(group_substr=None, id=None, form_of_education=__db_value_form_of_education['all']) -> list:
+def get_groups(group_substr=None, id=None, form_of_education=_db_value_form_of_education['all']) -> list:
     """return all groups or only the matching with math substr or set group id"""
-    groups = __do_query(sql.select_groups.format(form_of_education))
+    groups = _do_query(sql.select_groups.format(form_of_education))
     result = []
     if group_substr:
         for gr in groups:
@@ -133,26 +132,26 @@ def get_groups(group_substr=None, id=None, form_of_education=__db_value_form_of_
 def get_teachers(teacher_substr=None, id=None):
     """return all teachers or only the matching with math substr"""
     if teacher_substr:
-        teachers = __do_query(sql.select_all_teachers)
+        teachers = _do_query(sql.select_all_teachers)
         found_teachers = []
         for t in teachers:
             if teacher_substr.lower() in t['fullname'].lower():
                 found_teachers.append(t)
         return found_teachers
     elif id:
-        teachers = __do_query(sql.select_all_teachers)
+        teachers = _do_query(sql.select_all_teachers)
         found_teachers = []
         for t in teachers:
             if id == t['teacher_id']:
                 found_teachers.append(t)
         return found_teachers
     else:
-        return __do_query(sql.select_all_teachers)
+        return _do_query(sql.select_all_teachers)
 
 
 def get_classrooms(classroom_substr=None):
     """return all classrooms or only the matching with math substr"""
-    classrooms = __do_query(sql.select_classrooms)
+    classrooms = _do_query(sql.select_classrooms)
     if classroom_substr:
         for classroom in classrooms:
             if classroom_substr == classroom['classroom_name']:
@@ -162,14 +161,14 @@ def get_classrooms(classroom_substr=None):
 
 def lecturers_stream(stream_id: int) -> list:
     """:returns the list of groups integrated in this stream"""
-    stream = __do_query(sql.lecturers_stream.format(stream_id=stream_id))
+    stream = _do_query(sql.lecturers_stream.format(stream_id=stream_id))
     stream_names = [gr['group'] for gr in stream]
     return stream_names
 
 
 def get_groups_course(group_id):
     """return course of this group"""
-    course = __do_query(sql.groups_course.format(group_id))
+    course = _do_query(sql.groups_course.format(group_id))
     return course[0]['Course']
 
 
