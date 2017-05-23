@@ -10,7 +10,6 @@ import logging
 from pprint import pprint
 
 
-
 app = flask.Flask(__name__)
 
 bot = telebot.TeleBot(config.TOKEN)
@@ -197,12 +196,16 @@ def sub_schedule_kb(user) -> telebot.types.ReplyKeyboardMarkup:
 
 
 def academic_buldings_kb(user) -> telebot.types.ReplyKeyboardMarkup:
+    """return keyaboadr with academic buildings"""
     user.set_state(state.states['Get_academic_buildings'])
     kb = telebot.types.ReplyKeyboardMarkup()
     for ab in academic_buildings:
         kb.row([ab][0][0])
     kb.row(MENU)
     return kb
+
+
+# formatting schedule
 
 
 def format_schedule_group(pairs: dict, date: datetime.date, group_id) -> str:
@@ -288,6 +291,7 @@ def format_schedule_teacher(pairs: dict, date: datetime.date, teacher_id) -> str
 
 
 def format_schedule_classroom(pairs: dict, date: datetime.date, classroom_id) -> str:
+    """format schedule in str, ready to send user"""
     text = ' {0}. _{1}_\n'.format(weekdays[date.weekday()], date.strftime('%d %B'))
     last = 8
     for l in reversed(pair_time):
@@ -420,6 +424,12 @@ def hello(message):
                      '*Привет, я тестовая версия обновленной версии бота!!!* [О боте](telegra.ph/RGPPU-informer-bot-05-11)',
                      parse_mode='MARKDOWN',
                      reply_markup=start_board)
+
+
+@bot.message_handler(content_types=['sticker', 'voice', 'audio', 'document', 'photo'])
+def content_filter(message):
+    bot.send_message(message.chat.id, 'Я такого не знаю)))',
+                     parse_mode='MARKDOWN')
 
 
 @bot.message_handler(func=lambda msg: user.User(msg).get_state() == state.states['StartMenu'],
@@ -806,6 +816,6 @@ if __name__ == '__main__':
 
     locale.setlocale(locale.LC_ALL, ('RU', 'UTF8'))
     logger = telebot.logger
-    telebot.logger.setLevel(logging.INFO)
+    telebot.logger.setLevel(logging.DEBUG)
     print('run bot')
     bot.polling(none_stop=True)
