@@ -1,6 +1,4 @@
 from models import *
-from config import LOCALBASE
-
 
 localbase = LOCALBASE
 

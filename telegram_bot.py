@@ -1,147 +1,40 @@
-import schedule_db
-import state
-import telebot
-import config
-import flask
-import locale
 import datetime
-import user
+import locale
 import logging
-from pprint import pprint
+
+import telebot
+import flask
+
+import config
+import state
+import user
+import schedule_db
+from texts import *
 
 
 app = flask.Flask(__name__)
 
 bot = telebot.TeleBot(config.TOKEN)
 
-weekdays = ('🌕 *Понедельник*',
-            '🌖 *Вторник*',
-            '🌗 *Среда*',
-            '🌘 *Четверг*',
-            '🌑 *Пятница*',
-            '🌒 *Суббота*',
-            '🌓 *Воскресенье*')
 
-pair_time = [
-            (28800, '1️⃣ 08:00'),
-            (35100, '2️⃣ 09:45'),
-            (41400, '3️⃣ 11:30'),
-            (43200, '3️⃣ 12:00'),
-            (49500, '4️⃣ 13:45'),
-            (55800, '5️⃣ 15:30'),
-            (62100, '6️⃣ 17:15'),
-            (68400, '7️⃣ 19:00')]
-
-localbase = config.LOCALBASE
 print('local db connect')
-localbase.connect()
-
-important_links = '''
-[Таймлайн](http://timeline.rsvpu.ru) - Информационная система 
-
-[Электронная библиотека](http://umkd.rsvpu.ru) - Скачайте нужное вам методическое пособие
-
-[Мои документы](http://www.rsvpu.ru/moi-dokumenty/) - Закажи любую справку в *одном* месте
-
-[Об университете](http://www.rsvpu.ru/sveden/) - Сведения об образовательной организации
-'''
-
-primary_timetable = '''
-`I   `1) 08:00 - 08:45
-`         `2) 08:50 - 09:35
-
-`II  `1) 09:45 - 10:30
-`         `2) 10:35 - 11:20
-`Перерыв 40 минут🍏` 
-`III `1) 12:00 - 12:45
-`         `2) 12:50 - 13:35
-
-`IV  `1) 13:45 - 14:30
-`         `2) 14:35 - 15:20
-
-`V   `1) 15:30 - 16:15
-`         `2) 16:20 - 17:05
-
-`VI  `1) 17:15 - 18:00
-`         `2) 18:05 - 18:50
-
-`VII `1) 19:00 - 19:45
-`         `2) 19:50 - 20:35
-'''
-
-senior_timetable = '''
-`I   `1) 08:00 - 08:45
-`         `2) 08:50 - 09:35
-
-`II  `1) 09:45 - 10:30
-`         `2) 10:35 - 11:20
-     
-`III `1) 11:30 - 12:15
-`         `2) 12:20 - 13:05
-`Перерыв 40 минут🍏`
-`IV  `1) 13:45 - 14:30
-`         `2) 14:35 - 15:20
-
-`V   `1) 15:30 - 16:15
-`         `2) 16:20 - 17:05
-
-`VI  `1) 17:15 - 18:00
-`         `2) 18:05 - 18:50
-
-`VII `1) 19:00 - 19:45
-`         `2) 19:50 - 20:35
-'''
-
-academic_buildings = (('Корпус 0', 'ул. Машиностроителей д. 11 \n Проезд: метро ст. «Уралмаш», троллейбус 8, 10, 17, трамвай 5, 24, автобус 56, 33, 36 остановка «Площадь 1-ой Пятилетки».'),
-                      ('Корпус 1', 'ул. Машиностроителей д. 2, Проезд: метро ст. «Уралмаш», троллейбус 8, 10, 17, трамвай 5, 24, автобус 56, 33, 36 остановка «Площадь 1-ой Пятилетки».'),
-                      ('Корпус 2', 'ул. Машиностроителей д. 11 \n Проезд: метро ст. «Уралмаш», троллейбус 8, 10, 17, трамвай 5, 24, автобус 56, 33, 36 остановка «Площадь 1-ой Пятилетки».'),
-                      ('Корпус 3', 'ул. Каширская, 73 \n Проезд: троллейбус 13, 16, остановка «Таганская»'),
-                      ('Корпус 4', 'ул. Каширская, 73 \n Проезд: троллейбус 13, 16, остановка «Таганская»'),
-                      ('Корпус 5', 'ул. Каширская, 73 \n Проезд: троллейбус 13, 16, остановка «Таганская»'),
-                      ('Корпус 6', 'ул. Каширская, 73 \n Проезд: троллейбус 13, 16, остановка «Таганская»'),
-                      ('Корпус 7', 'ул. Машиностроителей д. 11 \n Проезд: метро ст. «Уралмаш», троллейбус 8, 10, 17, трамвай 5, 24, автобус 56, 33, 36 остановка «Площадь 1-ой Пятилетки».'),
-                      ('Корпус 8', 'ул. Машиностроителей д. 11 \n Проезд: метро ст. «Уралмаш», троллейбус 8, 10, 17, трамвай 5, 24, автобус 56, 33, 36 остановка «Площадь 1-ой Пятилетки».'),
-                      ('Корпус 9', 'ул. Ильича, 26 \n Проезд: троллейбус 10, остановка «Библиотека»'),
-                      ('Корпус 10', 'ул. Луначарского, 85а \nПроезд: трамвай 2, 3, 8, 14, 20, 25, 26, остановка «Шевченко»'),
-                      ('Корпус 11', 'ул. Машиностроителей, 9 \n Проезд: метро ст. «Уралмаш», троллейбус 8, 10, 17, трамвай 5, 24, автобус 56, 33, 36 остановка «Площадь 1-ой Пятилетки».'),
-                      ('Корпус 12', 'ул. Машиностроителей, 9 \n Проезд: метро ст. «Уралмаш», троллейбус 8, 10, 17, трамвай 5, 24, автобус 56, 33, 36 остановка «Площадь 1-ой Пятилетки».'),
-                      ('Корпус 13', 'ул. Таганская, 75, 75а (Колледж электроэнергетики и машиностроения) \nПроезд: троллейбус 13, 16, остановка «Таганская»'),
-                      ('Корпус 14', 'ул. Таганская, 75, 75а (Колледж электроэнергетики и машиностроения) \nПроезд: троллейбус 13, 16, остановка «Таганская»'),
-                      ('Корпус 15', 'ул. Фрезеровщиков, 78а'),
-                      ('Корпус 16', 'ул. Баумана, дом 28 а, г. Екатеринбург (здание бывшего научно-учебного центра)\nПроезд: метро ст. «Уралмаш», автобус 36, 149, 148 остановка «ДК УЭТМ». Троллейбус 16,  автобус 148 остановка «Шефская».'),
-                      ('Корпус 17', 'ул. Энгельса, дом 12 а, г. Первоуральске (здание дома культуры «Горняк»)'))
+config.LOCALBASE.connect()
 
 
-TIMETABLE = 'Расписание звонков ⏰'
-IMPORTANT_LINS = 'Важные ссылки 📌'
-LOCATION_OF_BUILDINGS = 'Расположение корпусов 🏛'
-SETTINGS = 'Настройки 🛠'
-DATE = 'Дата 📅'
-WEEK = 'Неделя 🗓'
-TWO_WEEK = 'Две недели 🗒'
-TODAY = 'Сегодня 📅️'
-TOMORROW = 'Завтра 📆'
-MENU = 'В меню 🏠'
-SENIOR_TIMETABLE = '3, 4 и 5 курсы'
-PRIMARY_TIMETABLE = '1 и 2 курс'
-ON_NEWS = 'Отключить новости❎️'
-OFF_NEWS = 'Включить новости✅'
-TIMELINE = 'Таймлайн 📎'
-SCHEDULE_SUB = 'Подписка на расписание 📭'
-SUB_ERROR = 'Оформите подписку что бы получать расписание'
-SCHEDULE_TEACHER = 'Преподаватель 👤'
-SCHEDULE_GROUP = 'Группа 👥'
-SCHEDULE_CLASSROOM = 'Аудитория 🔢'
-MENU_ENTER = 'Открываю меню'
-SELECT_INTERVAL = 'Выберите нобходимый промежуток.'
-SPLIT_WEEKS = '🔸🔸🔸🔸🔸🔸🔸🔸🔸🔸🔸🔸🔸'
+def compare_state(expected_state):
+    """if state of user match with expected state return True, otherwise False"""
+    def compare(msg):
+        usr = user.User(msg)
+        return usr.get_state() == expected_state
+
+    return compare
 
 
 def menu_kb(user)-> telebot.types.ReplyKeyboardMarkup:
     """Main menu keyboard"""
     user.set_state(state.states['Menu'])
     user.set_state_data({})
-    kb = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=9)
+    kb = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
     kb.row(TODAY, TOMORROW, WEEK)
     kb.row(SCHEDULE_TEACHER)
     kb.row(SCHEDULE_GROUP)
@@ -189,9 +82,9 @@ def sub_schedule_kb(user) -> telebot.types.ReplyKeyboardMarkup:
     """menu where user can change his schedule subscription"""
     user.set_state(state.states['Set_sub_schedule'])
     kb = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=1)
-    kb.row('Группа')
-    kb.row('Преподаватель')
-    kb.row('Отмена')
+    kb.row(SCHEDULE_GROUP)
+    kb.row(SCHEDULE_TEACHER)
+    kb.row(CANCEL)
     return kb
 
 
@@ -390,12 +283,12 @@ def send_schedule(query):
     if schedule_type == user.ScheduleType.Teacher:
         pairs = schedule_db.schedule_teacher_query(schedule_id, day)
         text = format_schedule_group(pairs, day, schedule_id)
-        answer = telebot.types.InlineQueryResultArticle(id='1',
-                                                        title='Сегодня',
-                                                        description=schedule_db.get_teachers(id=schedule_id)[0]['shortname'],
-                                                        input_message_content=telebot.types.InputTextMessageContent(
-                                                            message_text=text, parse_mode='MARKDOWN'))
-        bot.answer_inline_query(query.id, [answer])
+        answer_today = telebot.types.InlineQueryResultArticle(id='1',
+                                                              title='Сегодня',
+                                                              description=schedule_db.get_teachers(id=schedule_id)[0]['shortname'],
+                                                              input_message_content=telebot.types.InputTextMessageContent(
+                                                                  message_text=text, parse_mode='MARKDOWN'))
+        bot.answer_inline_query(query.id, [answer_today])
     elif schedule_type == user.ScheduleType.Group:
         pairs = schedule_db.schedule_group_query(schedule_id, day)
         text = format_schedule_group(pairs, day, schedule_id)
@@ -428,11 +321,11 @@ def hello(message):
 
 @bot.message_handler(content_types=['sticker', 'voice', 'audio', 'document', 'photo'])
 def content_filter(message):
-    bot.send_message(message.chat.id, 'Я такого не знаю)))',
+    bot.send_message(message.chat.id, NONE_TEXT_MSG,
                      parse_mode='MARKDOWN')
 
 
-@bot.message_handler(func=lambda msg: user.User(msg).get_state() == state.states['StartMenu'],
+@bot.message_handler(func=compare_state(state.states['StartMenu']),
                      content_types=['text'])
 def start_menu(message):
     """
@@ -443,8 +336,8 @@ def start_menu(message):
     if message.text == 'Подписаться на расписание':
         usr.set_state(state.states['Set_sub_schedule'])
         sub_keyboard = telebot.types.ReplyKeyboardMarkup()
-        sub_keyboard.row('Группа')
-        sub_keyboard.row('Преподаватель')
+        sub_keyboard.row(SCHEDULE_GROUP)
+        sub_keyboard.row(SCHEDULE_TEACHER)
         bot.send_message(usr.chat_id, 'Выберите необходимый вам тип расписания: ',
                          reply_markup=sub_keyboard)
     elif message.text == 'Подписаться на новости':
@@ -459,19 +352,19 @@ def start_menu(message):
         bot.send_message(usr.chat_id, 'Я не знаю такой команды!')
 
 
-@bot.message_handler(func=lambda msg: user.User(msg).get_state() == state.states['Set_sub_schedule'],
+@bot.message_handler(func=compare_state(state.states['Set_sub_schedule']),
                      content_types=['text'])
 def sub_menu(message):
     """
     Sub schedule Handler
     """
     usr = user.User(message)
-    if message.text == 'Группа':
+    if message.text == SCHEDULE_GROUP:
         usr.set_state_data({"type": user.ScheduleType.Group})
         bot.send_message(usr.chat_id,
                          "Введите нужную вам группу, я попробую её найти.",
                          reply_markup=telebot.types.ReplyKeyboardRemove())
-    elif message.text == 'Преподаватель':
+    elif message.text == SCHEDULE_TEACHER:
         usr.set_state_data({"type": user.ScheduleType.Teacher})
         bot.send_message(usr.chat_id,
                          "Введите имя преподавателя, я попробую найти.",
@@ -525,19 +418,20 @@ def sub_menu(message):
             else:
                 bot.send_message(usr.chat_id, 'Я ничего не нашел, попробуйте ввести иначе.')
             pass
-    elif (message.text == 'Отмена' and usr.get_sub_schedule() is not None):
+    elif (message.text == CANCEL and usr.get_sub_schedule() is not None):
         bot.send_message(usr.chat_id, 'Перехожу обратно в настройки', reply_markup=setting_kb(usr))
     else:
         bot.send_message(usr.chat_id, 'Я такого не ожидал, выберите пожалуйста пункт из списка')
 
 
-@bot.message_handler(func=lambda msg: user.User(msg).get_state() == state.states['Menu'],
+@bot.message_handler(func=compare_state(state.states['Menu']),
                      content_types=['text'])
 def main_menu(message):
     """
     Main menu
     """
     usr = user.User(message)
+    print(type(usr))
     if message.text == TODAY:
         text = get_self_schedule(usr, schedule_db.Days.today())
         bot.send_message(usr.chat_id, text, parse_mode='MARKDOWN')
@@ -612,7 +506,7 @@ def main_menu(message):
             bot.send_message(usr.chat_id, 'Я не смог найти такую дату =(, введи дату заново')
 
 
-@bot.message_handler(func=lambda msg: user.User(msg).get_state() == state.states['Settings'],
+@bot.message_handler(func=compare_state(state.states['Settings']),
                      content_types=['text'])
 def setting(message):
     usr = user.User(message)
@@ -635,8 +529,8 @@ def setting(message):
         bot.send_message(usr.chat_id, 'Выберите одну из предложенных вам команд')
 
 
-@bot.message_handler(content_types=['text'],
-                     func=lambda msg: user.User(msg).get_state() == state.states['Get_self_schedule_date'])
+@bot.message_handler(func=compare_state(state.states['Get_self_schedule_date']),
+                     content_types=['text'])
 def self_date_schedule(message):
     usr = user.User(message)
     if message.text != 'Отмена':
@@ -658,7 +552,7 @@ def self_date_schedule(message):
         bot.send_message(usr.chat_id, MENU_ENTER, reply_markup=menu_kb(usr))
 
 
-@bot.message_handler(func=lambda msg: user.User(msg).get_state() == state.states['Get_timetable'],
+@bot.message_handler(func=compare_state(state.states['Get_timetable']),
                      content_types=['text'])
 def timetable(message):
     usr = user.User(message)
@@ -672,7 +566,8 @@ def timetable(message):
         bot.send_message(usr.chat_id, 'Неизвестная команда')
 
 
-@bot.message_handler(func=lambda msg: user.User(msg).get_state() == state.states['Get_search_schedule_step1'])
+@bot.message_handler(func=compare_state(state.states['Get_search_schedule_step1']),
+                     content_types=['text'])
 def search_target(message):
     usr = user.User(message)
     if usr.get_state_data().keys():
@@ -727,7 +622,8 @@ def search_target(message):
                 print('gr')
 
 
-@bot.message_handler(func=lambda msg: user.User(msg).get_state() == state.states['Get_search_schedule_step2'])
+@bot.message_handler(func=compare_state(state.states['Get_search_schedule_step2']),
+                     content_types=['text'])
 def search_schedule(message):
     usr = user.User(message)
     if message.text == TODAY:
@@ -783,7 +679,7 @@ def search_schedule(message):
         bot.send_message(usr.chat_id, SELECT_INTERVAL)
 
 
-@bot.message_handler(func=lambda msg: user.User(msg).get_state() == state.states['Get_academic_buildings'],
+@bot.message_handler(func=compare_state(state.states['Get_academic_buildings']),
                      content_types=['text'])
 def get_academic_buildings(message):
     usr = user.User(message)

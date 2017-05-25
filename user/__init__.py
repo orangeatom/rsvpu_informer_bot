@@ -1,7 +1,8 @@
 """logic of work with User"""
 import datetime
-import models
 import json
+
+import models
 
 
 class ScheduleType:

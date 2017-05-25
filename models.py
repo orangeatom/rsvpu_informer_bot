@@ -2,8 +2,6 @@
 from peewee import *
 from config import LOCALBASE
 
-localbase = LOCALBASE
-
 
 class User(Model):
     """this model contain user data"""
@@ -18,5 +16,5 @@ class User(Model):
     number_of_queries = IntegerField(default=0)
 
     class Meta:
-        database = localbase
+        database = LOCALBASE
 
