@@ -1,0 +1,10 @@
+states = {'StartMenu': 0,
+          'Menu': 1,
+          'Set_sub_schedule': 2,
+          'Settings': 3,
+          'Timeline_login': 4,
+          'Get_self_schedule_date': 5,
+          'Get_timetable': 6,
+          'Get_search_schedule_step1': 7,
+          'Get_search_schedule_step2': 9,
+          'Get_academic_buildings': 8}
