@@ -9,7 +9,7 @@ import config
 import state
 import user
 import schedule_db
-from texts import *
+from contents import *
 
 
 app = flask.Flask(__name__)
