@@ -1,9 +1,13 @@
 import datetime
 import locale
 import logging
+from threading import Thread
+import time
+
 
 import telebot
 import flask
+import requests
 
 import config
 import state
@@ -15,7 +19,8 @@ from contents import *
 app = flask.Flask(__name__)
 
 bot = telebot.TeleBot(config.TOKEN)
-
+WEBHOOK_URL_BASE = 'https://%s' % (config.HOST)#, config.FLASKCONNECTION.port)
+WEBHOOK_URL_PATH = '/bot/%s/' % (config.TOKEN)
 
 print('local db connect')
 config.LOCALBASE.connect()
@@ -34,13 +39,14 @@ def menu_kb(user)-> telebot.types.ReplyKeyboardMarkup:
     """Main menu keyboard"""
     user.set_state(state.states['Menu'])
     user.set_state_data({})
-    kb = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
+    kb = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=1)
     kb.row(TODAY, TOMORROW, WEEK)
     kb.row(SCHEDULE_TEACHER)
     kb.row(SCHEDULE_GROUP)
     kb.row(SCHEDULE_CLASSROOM)
     kb.row(TIMETABLE)
     kb.row(IMPORTANT_LINS)
+    kb.row(SOCIAL_NETS)
     kb.row(LOCATION_OF_BUILDINGS)
     kb.row(SETTINGS)
     return kb
@@ -49,13 +55,9 @@ def menu_kb(user)-> telebot.types.ReplyKeyboardMarkup:
 def setting_kb(user) -> telebot.types.ReplyKeyboardMarkup:
     """Setting menu keyboard"""
     user.set_state(state.states['Settings'])
-    kb = telebot.types.ReplyKeyboardMarkup()
+    kb = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=1)
+
     kb.row(SCHEDULE_SUB)
-    if user.get_sub_news():
-        kb.row(ON_NEWS)
-    else:
-        kb.row(OFF_NEWS)
-    kb.row(TIMELINE)
     kb.row(MENU)
     return kb
 
@@ -271,36 +273,75 @@ def get_schedule(type, schedule_id, day):
     else:
         text = 'я тут что то запутался, походу вы меня сломали'
     return text
+# web server logic
+
+
+@app.route('/', methods=['GET'])
+def index():
+    return ""
+
+
+@app.route('/{0}/<username>'.format('timeline'), methods=['GET', 'HEAD', 'POST'])
+def timeline(username):
+    return ''
+
+
+@app.route(WEBHOOK_URL_PATH, methods=['POST'])
+def webhook():
+    if flask.request.headers.get('content-type') == 'application/json':
+        json_string = flask.request.get_data().decode('utf-8')
+        update = telebot.types.Update.de_json(json_string)
+        bot.process_new_updates([update])
+        return ''
+    else:
+        flask.abort(403)
+
 # here start bot's logic
 
 
 @bot.inline_handler(func=lambda query: True)
 def send_schedule(query):
+    # todo make it in multithreading
     usr = user.User(query=query)
-    schedule_type = usr.get_sub_schedule()['type']
-    schedule_id = usr.get_sub_schedule()['schedule_id']
-    day = schedule_db.Days.today()
-    if schedule_type == user.ScheduleType.Teacher:
-        pairs = schedule_db.schedule_teacher_query(schedule_id, day)
-        text = format_schedule_group(pairs, day, schedule_id)
-        answer_today = telebot.types.InlineQueryResultArticle(id='1',
-                                                              title='Сегодня',
-                                                              description=schedule_db.get_teachers(id=schedule_id)[0]['shortname'],
-                                                              input_message_content=telebot.types.InputTextMessageContent(
-                                                                  message_text=text, parse_mode='MARKDOWN'))
-        bot.answer_inline_query(query.id, [answer_today])
-    elif schedule_type == user.ScheduleType.Group:
-        pairs = schedule_db.schedule_group_query(schedule_id, day)
-        text = format_schedule_group(pairs, day, schedule_id)
-        print()
-        answer = telebot.types.InlineQueryResultArticle(id='1',
-                                                        title='Сегодня',
-                                                        description=schedule_db.get_groups(id=schedule_id)[0]['group_name'],
-                                                        input_message_content=telebot.types.InputTextMessageContent(
-                                                            message_text=text, parse_mode='MARKDOWN'))
-        bot.answer_inline_query(query.id, [answer])
+    if usr.get_sub_schedule():
+        schedule_type = usr.get_sub_schedule()['type']
+        live_time = 1000
+        icon_url = 'https://cs7061.userapi.com/c812726/u47444051/docs/f397e837e006/geometry123_3.png?extra=LSfxXeiPTx-k8bmpqASfMtgvIbXmcZSOV6p6sCWZFFZxo2N_OqRH0qJEC6TpyxULig8a6Vnzmp5MXvlc6jsioeLwWq1Sq6eyywMiVf9C1hSwmPKz9Rjp'
+        schedule_id = usr.get_sub_schedule()['schedule_id']
+        if schedule_type == user.ScheduleType.Teacher:
+            schedule = []
+            days = schedule_db.Days.days_from_today(15)
+            i = 1
+            for d in days:
+                pairs = schedule_db.schedule_teacher_query(schedule_id, d)
+                text = format_schedule_group(pairs, d, schedule_id)
+                schedule.append(telebot.types.InlineQueryResultArticle(id=str(i),
+                                                                       title=d.strftime('%d %B'),
+                                                                       description=schedule_db.get_teachers(id=schedule_id)[0]['shortname'],
+                                                                       input_message_content=telebot.types.InputTextMessageContent(
+                                                                           message_text=text, parse_mode='MARKDOWN'),
+                                                                       thumb_url=icon_url, thumb_height=15))
+                i += 1
+            bot.answer_inline_query(query.id, schedule, cache_time=live_time)
+        elif schedule_type == user.ScheduleType.Group:
+            schedule = []
+            days = schedule_db.Days.days_from_today(15)
+            i = 1
+            for d in days:
+                pairs = schedule_db.schedule_group_query(schedule_id, d)
+                text = format_schedule_group(pairs, d, schedule_id)
+                schedule.append(telebot.types.InlineQueryResultArticle(id=str(i),
+                                                                       title=d.strftime('%d %B'),
+                                                                       description=
+                                                                       schedule_db.get_groups(id=schedule_id)[0][
+                                                                           'group_name'],
+                                                                       input_message_content=telebot.types.InputTextMessageContent(
+                                                                           message_text=text, parse_mode='MARKDOWN'),
+                                                                       thumb_url=icon_url, thumb_height=15))
+                i += 1
+            bot.answer_inline_query(query.id, schedule, cache_time=live_time)
     else:
-        print('asds')
+        pass
 
 
 @bot.message_handler(commands=['start'])
@@ -308,13 +349,11 @@ def hello(message):
     """add user_of_bot into base"""
     usr = user.User(message)
     usr.set_state(state.states['StartMenu'])
-    start_board = telebot.types.ReplyKeyboardMarkup()
+    start_board = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=1)
     start_board.row('Подписаться на расписание')
-    start_board.row('Подписаться на новости')
-    start_board.row('Зайти в Таймлайн')
     start_board.row('В меню')
     bot.send_message(usr.chat_id,
-                     '*Привет, я тестовая версия обновленной версии бота!!!* [О боте](telegra.ph/RGPPU-informer-bot-05-11)',
+                     '*Привет, я обновленная версия бота!!!* [О боте](telegra.ph/RGPPU-informer-bot-05-11)',
                      parse_mode='MARKDOWN',
                      reply_markup=start_board)
 
@@ -404,7 +443,6 @@ def sub_menu(message):
                                      reply_markup=menu_kb(usr))
                 elif 1 < len(groups) <= 15:
                     groups_kb = telebot.types.ReplyKeyboardMarkup()
-                    print(groups)
                     for gr in groups:
                         groups_kb.row(gr['group_name'])
                     bot.send_message(usr.chat_id,
@@ -431,7 +469,6 @@ def main_menu(message):
     Main menu
     """
     usr = user.User(message)
-    print(type(usr))
     if message.text == TODAY:
         text = get_self_schedule(usr, schedule_db.Days.today())
         bot.send_message(usr.chat_id, text, parse_mode='MARKDOWN')
@@ -481,7 +518,10 @@ def main_menu(message):
                          reply_markup=timetable_kb(usr))
 
     elif message.text == IMPORTANT_LINS:
-        bot.send_message(usr.chat_id, important_links, parse_mode='MARKDOWN')
+        bot.send_message(usr.chat_id, important_links, parse_mode='MARKDOWN',disable_web_page_preview=True)
+
+    elif message.text == SOCIAL_NETS:
+        bot.send_message(usr.chat_id, social_nets, parse_mode='MARKDOWN',disable_web_page_preview=True)
 
     elif message.text == LOCATION_OF_BUILDINGS:
         bot.send_message(usr.chat_id, "Выберите интересующий вас корпус, я скажу где он",
@@ -521,7 +561,9 @@ def setting(message):
         pass
     elif message.text == TIMELINE:
         # todo
-        bot.send_message(usr.chat_id, 'скоро добавлю мой дорогой пользователь')
+        usr.set_state(state.states['Timeline_login'])
+        bot.send_message(usr.chat_id, 'Введите логин от вашей учетной записи в Таймлайн',
+                         reply_markup=telebot.types.ReplyKeyboardRemove())
         pass
     elif message.text == MENU:
         bot.send_message(usr.chat_id, 'Открываю меню', reply_markup=menu_kb(usr))
@@ -574,14 +616,12 @@ def search_target(message):
         if 'type' in usr.get_state_data().keys():
             if usr.get_state_data()['type'] == user.ScheduleType.Classroom:
                 classroom = schedule_db.get_classrooms(message.text)
-                print(classroom)
                 if classroom:
                     usr.set_state_data({'type': user.ScheduleType.Classroom,
                                         'schedule_id': classroom['classroom_id']})
                     bot.send_message(usr.chat_id, SELECT_INTERVAL+';', reply_markup=search_kb(usr))
                 else:
                     bot.send_message(usr.chat_id, 'Я не смог найти такую аудиторию, попробуй ввести еще раз')
-                print('aud')
 
             elif usr.get_state_data()['type'] == user.ScheduleType.Teacher:
                 teachers = schedule_db.get_teachers(message.text)
@@ -618,8 +658,6 @@ def search_target(message):
                     elif len(groups) > 50:
                         bot.send_message(usr.chat_id,
                                          'Результат поиска получил слишком много результатов, попробуйте ввести более конкретное значение')
-
-                print('gr')
 
 
 @bot.message_handler(func=compare_state(state.states['Get_search_schedule_step2']),
@@ -689,11 +727,21 @@ def get_academic_buildings(message):
         for ab in academic_buildings:
             if message.text == ab[0]:
                 text = ab[1]
-                bot.send_message(usr.chat_id, text)
+                bot.send_message(usr.chat_id, text, parse_mode='MARKDOWN', disable_web_page_preview=True)
                 break
 
         else:
             bot.send_message(usr.chat_id, "Я не знаю такого корпуса, выберите из списка")
+
+
+@bot.message_handler(func=compare_state(state.states['Timeline_login']),
+                     content_types=['text'])
+def login_timeline(message):
+    """auth user in Timeline"""
+    usr = user.User(message)
+    if usr.get_state_data():
+        print('hehe')
+    pass
 
 
 @bot.message_handler(content_types=['text'])
@@ -703,15 +751,12 @@ def text_handler(message):
                      parse_mode='MARKDOWN')
 
 
-@bot.message_handler(content_types=['text'])
-def old_users(message):
-    pass
+# set locale to send weekdays in RU format
 
-if __name__ == '__main__':
-    # set locale to send weekdays in RU format
+locale.setlocale(locale.LC_ALL, ('RU', 'UTF8'))
+logger = telebot.logger
+telebot.logger.setLevel(logging.DEBUG)
 
-    locale.setlocale(locale.LC_ALL, ('RU', 'UTF8'))
-    logger = telebot.logger
-    telebot.logger.setLevel(logging.DEBUG)
-    print('run bot')
-    bot.polling(none_stop=True)
+bot.remove_webhook()
+
+bot.set_webhook(url=WEBHOOK_URL_BASE + WEBHOOK_URL_PATH)#,

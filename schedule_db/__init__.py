@@ -3,7 +3,6 @@ import datetime
 import pymssql
 from enum import Enum
 import config
-from pprint import pprint
 from schedule_db import sql
 
 pair_time = (
@@ -43,19 +42,23 @@ class ScheduleType(Enum):
 
 
 class Days:
+
     @classmethod
     def tomorrow(self) -> datetime:
+        dt = datetime.date(2017, 3, 15)
         """return datetime object with tomorrow """
         return datetime.date.today() + datetime.timedelta(days=1)
 
     @classmethod
     def today(self) -> datetime:
         """return datetime object with today"""
+        dt = datetime.date(2017, 3, 15)
         return datetime.date.today()
 
     @classmethod
     def days_from_today(self, days: int) -> list:
         dates = []
+
         for day in range(days):
             dates.append(datetime.date.today() + datetime.timedelta(days=day))
         return dates

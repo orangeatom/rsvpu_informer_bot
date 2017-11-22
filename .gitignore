@@ -1,0 +1,7 @@
+*.db
+*.save
+__pycache_/_
+*.pyc
+*.log
+.idea
+*.swp
